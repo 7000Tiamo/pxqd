@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.TrainingMapper">
+    
+    <resultMap id="BaseResultMap" type="com.training.entity.Training">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="trainer" property="trainer"/>
+        <result column="location" property="location"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="cover_url" property="coverUrl"/>
+        <result column="status" property="status"/>
+        <result column="need_signup" property="needSignup"/>
+        <result column="need_checkout" property="needCheckout"/>
+        <result column="gps_required" property="gpsRequired"/>
+        <result column="late_minutes" property="lateMinutes"/>
+        <result column="early_leave_minutes" property="earlyLeaveMinutes"/>
+        <result column="max_participants" property="maxParticipants"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+    
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM trainings WHERE id = #{id} AND deleted = 0
+    </select>
+    
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM trainings WHERE deleted = 0 ORDER BY created_at DESC
+    </select>
+    
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT * FROM trainings WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (title LIKE '%' || #{keyword} || '%' OR trainer LIKE '%' || #{keyword} || '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC
+    </select>
+    
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT * FROM trainings WHERE status = #{status} AND deleted = 0 ORDER BY created_at DESC
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO trainings (title, description, trainer, location, start_time, end_time, cover_url, status,
+            need_signup, need_checkout, gps_required, late_minutes, early_leave_minutes, max_participants,
+            created_at, updated_at, deleted)
+        VALUES (#{title}, #{description}, #{trainer}, #{location}, #{startTime}, #{endTime}, #{coverUrl}, #{status},
+            #{needSignup}, #{needCheckout}, #{gpsRequired}, #{lateMinutes}, #{earlyLeaveMinutes}, #{maxParticipants},
+            #{createdAt}, #{updatedAt}, #{deleted})
+    </insert>
+    
+    <update id="updateById">
+        UPDATE trainings SET
+            title = #{title},
+            description = #{description},
+            trainer = #{trainer},
+            location = #{location},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            cover_url = #{coverUrl},
+            status = #{status},
+            need_signup = #{needSignup},
+            need_checkout = #{needCheckout},
+            gps_required = #{gpsRequired},
+            late_minutes = #{lateMinutes},
+            early_leave_minutes = #{earlyLeaveMinutes},
+            max_participants = #{maxParticipants},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <update id="deleteById">
+        UPDATE trainings SET deleted = 1 WHERE id = #{id}
+    </update>
+    
+</mapper>
+

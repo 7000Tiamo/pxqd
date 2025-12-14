@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>培训签到系统 - 交互原型 v2</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6; /* Modern Blue */
+            --primary-hover: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 0.5rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- UI Components --- */
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            gap: 0.5rem;
+        }
+        .btn:active { transform: translateY(1px); }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3); }
+
+        .btn-secondary { background-color: white; border-color: var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
+
+        .btn-danger { background-color: #fee2e2; color: var(--danger-color); }
+        .btn-danger:hover { background-color: #fecaca; }
+
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+        /* Inputs */
+        .input {
+            display: block;
+            width: 100%;
+            padding: 0.625rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+            transition: border-color 0.2s;
+        }
+        .input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.2s;
+        }
+        .card:hover { box-shadow: var(--shadow-md); }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            background: white;
+        }
+        .table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        .table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table tr:last-child td { border-bottom: none; }
+        .table tr:hover td { background-color: #f8fafc; }
+
+        /* Layout Helpers */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .w-full { width: 100%; }
+        
+        .text-xl { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
+        .text-lg { font-size: 1.125rem; font-weight: 600; }
+        .text-sm { font-size: 0.875rem; }
+        .text-secondary { color: var(--text-secondary); }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: 700; }
+        
+        /* Grid */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+        @media (max-width: 768px) {
+            .grid-2, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        /* Navigation */
+        header {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+        }
+        .nav-links { display: flex; gap: 2rem; height: 100%; }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            height: 100%;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-link:hover { color: var(--primary-color); }
+        .nav-link.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+
+        /* Tags */
+        .tag {
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .tag-blue { background: #eff6ff; color: #1d4ed8; }
+        .tag-green { background: #ecfdf5; color: #047857; }
+        .tag-yellow { background: #fffbeb; color: #b45309; }
+        .tag-gray { background: #f1f5f9; color: #475569; }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--primary-color);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            min-width: 300px;
+        }
+        .toast.success { border-left-color: var(--success-color); }
+        .toast.error { border-left-color: var(--danger-color); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-header { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .modal-footer { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; }
+
+        /* Specific Views */
+        .main-container { padding: 2rem; max-width: 1280px; margin: 0 auto; width: 100%; flex: 1; }
+        
+        /* Mobile Simulator */
+        .mobile-frame {
+            width: 360px;
+            height: 700px;
+            background: white;
+            border: 12px solid #2d2d2d;
+            border-radius: 40px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .mobile-status-bar { height: 24px; background: #2d2d2d; width: 100%; }
+        .mobile-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+        .mobile-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+        }
+
+        /* Chat */
+        .chat-box {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        .chat-msgs { flex: 1; padding: 1.5rem; overflow-y: auto; background: #f1f5f9; }
+        .chat-input { padding: 1rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.5rem; background: white; }
+        .msg {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .msg.bot { background: white; border-bottom-left-radius: 0; align-self: flex-start; box-shadow: var(--shadow-sm); }
+        .msg.user { background: var(--primary-color); color: white; border-bottom-right-radius: 0; align-self: flex-end; margin-left: auto; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Header -->
+    <header id="main-header" class="hidden">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center bg-blue-100 text-blue-600 w-8 h-8 rounded-full font-bold">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+            </div>
+            <h1 class="text-lg">企业培训签到</h1>
+        </div>
+
+        <nav class="nav-links" id="admin-nav">
+            <a onclick="router.go('admin-home')" class="nav-link">总览</a>
+            <a onclick="router.go('training-mgmt')" class="nav-link">培训管理</a>
+            <a onclick="router.go('user-mgmt')" class="nav-link">用户管理</a>
+            <a onclick="router.go('stats')" class="nav-link">数据统计</a>
+            <a onclick="router.go('rag')" class="nav-link">智能助手</a>
+        </nav>
+
+        <nav class="nav-links hidden" id="employee-nav">
+            <a onclick="router.go('employee-home')" class="nav-link">我的主页</a>
+            <a onclick="router.go('rag')" class="nav-link">智能助手</a>
+        </nav>
+
+        <div class="flex items-center gap-4">
+            <div class="flex flex-col items-end">
+                <span id="user-name-display" class="text-sm font-bold text-main">管理员</span>
+                <span id="user-role-display" class="text-xs text-secondary">Admin</span>
+            </div>
+            <button onclick="auth.logout()" class="btn btn-secondary btn-sm">退出</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- View: Login -->
+        <div id="view-login">
+            <div class="flex items-center justify-center" style="height: 80vh;">
+                <div class="card" style="width: 400px; padding: 2.5rem;">
+                    <h2 class="text-xl text-center mb-6">欢迎登录</h2>
+                    <div class="mb-4">
+                        <label class="text-sm font-bold mb-1 block">账号</label>
+                        <input type="text" id="login-id" class="input" placeholder="admin 或 emp001" value="admin">
+                    </div>
+                    <div class="mb-6">
+                        <label class="text-sm font-bold mb-1 block">密码</label>
+                        <input type="password" class="input" value="123456">
+                    </div>
+                    <button onclick="auth.login()" class="btn btn-primary w-full" style="padding: 0.75rem;">登 录</button>
+                    <div class="mt-4 text-center text-sm text-secondary">
+                        <p>管理员: admin / 员工: emp001</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Admin Home -->
+        <div id="view-admin-home" class="hidden">
+            <h2 class="text-xl mb-6">管理总览</h2>
+            <div class="grid-4 mb-8">
+                <div class="card flex flex-col items-center">
+                    <span class="text-3xl font-bold text-primary mb-1">12</span>
+                    <span class="text-sm text-secondary">本月培训场次</span>
+                </div>
+                <div class="card flex flex-col items-center">
+                    <span class="text-3xl font-bold text-success mb-1">348</span>
+                    <span class="text-sm text-secondary">累计报名人数</span>
+                </div>
+                <div class="card flex flex-col items-center">
+                    <span class="text-3xl font-bold text-warning mb-1">92%</span>
+                    <span class="text-sm text-secondary">平均签到率</span>
+                </div>
+                <div class="card flex flex-col items-center">
+                    <span class="text-3xl font-bold text-purple-600 mb-1">4.8</span>
+                    <span class="text-sm text-secondary">课程平均评分</span>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="grid-template-columns: 2fr 1fr;">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg">最近发布的培训</h3>
+                        <button onclick="router.go('training-mgmt')" class="btn btn-secondary btn-sm">查看全部</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead><tr><th>培训名称</th><th>时间</th><th>状态</th></tr></thead>
+                            <tbody id="home-recent-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 class="text-lg mb-4">快捷操作</h3>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="router.go('training-form')" class="btn btn-primary w-full justify-center">发布新培训</button>
+                        <button onclick="router.go('user-mgmt')" class="btn btn-secondary w-full justify-center">添加新员工</button>
+                        <button onclick="router.go('stats')" class="btn btn-secondary w-full justify-center">下载本月报表</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Employee Home -->
+        <div id="view-employee-home" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl">我的培训看板</h2>
+                <button onclick="router.go('mobile-signin')" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                    扫码签到
+                </button>
+            </div>
+            
+            <div class="card mb-6">
+                <h3 class="text-lg mb-4 border-b pb-2">待参加培训</h3>
+                <div id="emp-todo-list" class="flex flex-col gap-4"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="text-lg mb-4 border-b pb-2">最新可报名</h3>
+                <div id="emp-available-list" class="grid-2"></div>
+            </div>
+        </div>
+
+        <!-- View: User Management -->
+        <div id="view-user-mgmt" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl">用户管理</h2>
+                <button onclick="app.openUserModal()" class="btn btn-primary">+ 新建用户</button>
+            </div>
+            <div class="card">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>工号</th>
+                                <th>部门</th>
+                                <th>状态</th>
+                                <th style="text-align: right;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Training Management -->
+        <div id="view-training-mgmt" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl">培训管理</h2>
+                <button onclick="router.go('training-form')" class="btn btn-primary">+ 发布培训</button>
+            </div>
+            <div class="card">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>培训名称</th>
+                                <th>时间</th>
+                                <th>讲师</th>
+                                <th>报名/限额</th>
+                                <th>状态</th>
+                                <th style="text-align: right;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="training-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Training Form -->
+        <div id="view-training-form" class="hidden">
+            <div class="flex items-center gap-4 mb-6">
+                <button onclick="router.back()" class="btn btn-secondary">← 返回</button>
+                <h2 class="text-xl">发布/编辑培训</h2>
+            </div>
+            <div class="card max-w-4xl mx-auto">
+                <div class="grid-2">
+                    <div>
+                        <div class="mb-4">
+                            <label class="text-sm font-bold mb-1 block">培训名称</label>
+                            <input type="text" id="tf-title" class="input" placeholder="例如：2025年第一季度安全培训">
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-sm font-bold mb-1 block">讲师</label>
+                            <input type="text" id="tf-trainer" class="input" placeholder="讲师姓名">
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-sm font-bold mb-1 block">地点</label>
+                            <input type="text" id="tf-location" class="input" placeholder="例如：301会议室">
+                        </div>
+                        <div class="grid-2 gap-2">
+                            <div class="mb-4">
+                                <label class="text-sm font-bold mb-1 block">开始时间</label>
+                                <input type="datetime-local" id="tf-start" class="input">
+                            </div>
+                            <div class="mb-4">
+                                <label class="text-sm font-bold mb-1 block">结束时间</label>
+                                <input type="datetime-local" id="tf-end" class="input">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="mb-4">
+                            <label class="text-sm font-bold mb-1 block">培训介绍</label>
+                            <textarea id="tf-desc" class="input" rows="6" placeholder="请输入培训详细介绍..."></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-sm font-bold mb-1 block">人数限制 (0为不限)</label>
+                            <input type="number" id="tf-limit" class="input" value="50">
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <h4 class="font-bold text-sm mb-2 text-blue-800">签到规则</h4>
+                            <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                                <input type="checkbox" checked class="accent-blue-600"> 需要报名
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm">迟到阈值:</span>
+                                <input type="number" class="input" style="width: 80px; padding: 0.25rem;" value="15">
+                                <span class="text-sm">分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 border-t pt-4">
+                    <button onclick="router.back()" class="btn btn-secondary">取消</button>
+                    <button onclick="app.saveTraining()" class="btn btn-primary px-6">发布培训</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Training Detail -->
+        <div id="view-training-detail" class="hidden">
+            <div class="flex items-center gap-4 mb-6">
+                <button onclick="router.back()" class="btn btn-secondary">← 返回</button>
+                <h2 class="text-xl">培训详情</h2>
+            </div>
+            
+            <div class="grid-2 mb-6" style="grid-template-columns: 2fr 1fr;">
+                <div class="card">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2" id="td-title">培训名称</h3>
+                            <div class="flex gap-4 text-sm text-secondary">
+                                <span>👤 <span id="td-trainer">讲师</span></span>
+                                <span>📍 <span id="td-location">地点</span></span>
+                                <span>⏰ <span id="td-time">时间</span></span>
+                            </div>
+                        </div>
+                        <span id="td-status" class="tag tag-blue">状态</span>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-6" id="td-desc">培训介绍...</p>
+                    <div class="flex gap-3">
+                        <button class="btn btn-primary">生成签到二维码</button>
+                        <button class="btn btn-secondary">编辑培训</button>
+                        <button class="btn btn-secondary">发布公告</button>
+                    </div>
+                </div>
+                
+                <div class="grid-2 gap-4" style="grid-template-columns: 1fr 1fr;">
+                    <div class="card flex flex-col items-center justify-center p-4">
+                        <span class="text-2xl font-bold text-blue-600" id="td-stat-applied">0</span>
+                        <span class="text-xs text-secondary">已报名</span>
+                    </div>
+                    <div class="card flex flex-col items-center justify-center p-4">
+                        <span class="text-2xl font-bold text-green-600" id="td-stat-signed">0</span>
+                        <span class="text-xs text-secondary">已签到</span>
+                    </div>
+                    <div class="card flex flex-col items-center justify-center p-4">
+                        <span class="text-2xl font-bold text-orange-500" id="td-stat-late">0</span>
+                        <span class="text-xs text-secondary">迟到</span>
+                    </div>
+                    <div class="card flex flex-col items-center justify-center p-4">
+                        <span class="text-2xl font-bold text-gray-500" id="td-stat-rate">0%</span>
+                        <span class="text-xs text-secondary">签到率</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="text-lg mb-4">学员名单</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>部门</th>
+                                <th>报名时间</th>
+                                <th>签到时间</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="td-student-list">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Statistics -->
+        <div id="view-stats" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl">数据统计</h2>
+                <button class="btn btn-secondary" onclick="ui.toast('报表导出中...')">📥 导出Excel</button>
+            </div>
+
+            <div class="grid-4 mb-6">
+                <div class="card p-4">
+                    <div class="text-sm text-secondary mb-1">本月平均参与率</div>
+                    <div class="text-2xl font-bold text-blue-600">88.5%</div>
+                    <div class="text-xs text-green-500">↑ 2.3% 较上月</div>
+                </div>
+                <div class="card p-4">
+                    <div class="text-sm text-secondary mb-1">累计培训时长</div>
+                    <div class="text-2xl font-bold text-purple-600">126h</div>
+                </div>
+                <div class="card p-4">
+                    <div class="text-sm text-secondary mb-1">人均培训场次</div>
+                    <div class="text-2xl font-bold text-orange-500">3.2</div>
+                </div>
+                <div class="card p-4">
+                    <div class="text-sm text-secondary mb-1">总投入预算</div>
+                    <div class="text-2xl font-bold text-gray-700">¥12,400</div>
+                </div>
+            </div>
+
+            <div class="grid-2 mb-6" style="grid-template-columns: 2fr 1fr;">
+                <div class="card">
+                    <h3 class="text-lg mb-4">各部门参与情况</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span>研发部</span><span>92%</span></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: 92%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span>市场部</span><span>78%</span></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: 78%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span>人事部</span><span>95%</span></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: 95%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1"><span>财务部</span><span>85%</span></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: 85%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card flex flex-col items-center justify-center">
+                    <h3 class="text-lg mb-4 w-full text-left">签到状态分布</h3>
+                    <div class="relative w-40 h-40 rounded-full" style="background: conic-gradient(#10b981 0% 70%, #f59e0b 70% 85%, #ef4444 85% 100%);">
+                        <div class="absolute inset-4 bg-white rounded-full flex items-center justify-center flex-col">
+                            <span class="text-2xl font-bold">348</span>
+                            <span class="text-xs text-secondary">总人次</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-6 text-xs">
+                        <div class="flex items-center gap-1"><span class="w-3 h-3 bg-green-500 rounded-full"></span>正常 70%</div>
+                        <div class="flex items-center gap-1"><span class="w-3 h-3 bg-yellow-500 rounded-full"></span>迟到 15%</div>
+                        <div class="flex items-center gap-1"><span class="w-3 h-3 bg-red-500 rounded-full"></span>缺勤 15%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="text-lg mb-4">详细数据表</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>培训名称</th>
+                                <th>部门</th>
+                                <th>应到</th>
+                                <th>实到</th>
+                                <th>参与率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025年Q1全员安全意识培训</td>
+                                <td>研发部</td>
+                                <td>50</td>
+                                <td>48</td>
+                                <td>96%</td>
+                            </tr>
+                            <tr>
+                                <td>2025年Q1全员安全意识培训</td>
+                                <td>市场部</td>
+                                <td>30</td>
+                                <td>25</td>
+                                <td>83%</td>
+                            </tr>
+                            <tr>
+                                <td>高级架构设计实战</td>
+                                <td>研发部</td>
+                                <td>20</td>
+                                <td>20</td>
+                                <td>100%</td>
+                            </tr>
+                            <tr>
+                                <td>商务礼仪与沟通</td>
+                                <td>市场部</td>
+                                <td>40</td>
+                                <td>35</td>
+                                <td>87.5%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Mobile Sign In -->
+        <div id="view-mobile-signin" class="hidden">
+            <div class="flex justify-center py-8 bg-gray-100 min-h-screen">
+                <div class="mobile-frame">
+                    <div class="mobile-status-bar"></div>
+                    <div class="mobile-header">
+                        <span>签到助手</span>
+                    </div>
+                    <div class="mobile-content relative">
+                        <!-- Step 1: Scan -->
+                        <div id="ms-step-scan" class="flex flex-col items-center justify-center h-full">
+                            <div class="w-64 h-64 border-4 border-dashed border-gray-300 rounded-xl flex items-center justify-center mb-8 bg-gray-50">
+                                <span class="text-gray-400">相机取景框</span>
+                            </div>
+                            <button onclick="app.mobileScanSuccess()" class="btn btn-primary w-full py-3 mb-3">
+                                模拟：识别到二维码
+                            </button>
+                            <button onclick="router.back()" class="btn btn-secondary w-full">退出</button>
+                        </div>
+
+                        <!-- Step 2: Confirm -->
+                        <div id="ms-step-confirm" class="hidden flex flex-col h-full">
+                            <div class="text-center mb-8 mt-4">
+                                <h3 class="text-xl font-bold mb-2 text-gray-800" id="ms-title">培训名称</h3>
+                                <div class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                    09:00 - 11:00
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-auto">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-gray-500">讲师</span>
+                                    <span class="font-medium">赵六</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">地点</span>
+                                    <span class="font-medium">大会议室</span>
+                                </div>
+                            </div>
+
+                            <button onclick="app.mobileDoSign()" class="btn btn-primary w-full py-4 text-lg shadow-lg mt-4">
+                                确认签到
+                            </button>
+                        </div>
+
+                        <!-- Step 3: Success -->
+                        <div id="ms-step-success" class="hidden flex flex-col items-center justify-center h-full text-center">
+                            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">签到成功</h3>
+                            <p class="text-gray-500 mb-8" id="ms-success-time">时间: 08:55:20</p>
+                            <button onclick="router.go('employee-home')" class="btn btn-secondary w-full">返回首页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: RAG -->
+        <div id="view-rag" class="hidden">
+            <h2 class="text-xl mb-4">智能问答助手</h2>
+            <div class="grid-2" style="grid-template-columns: 1fr 300px;">
+                <div class="chat-box">
+                    <div id="chat-msgs" class="chat-msgs">
+                        <div class="msg bot">你好！我是你的考勤助手，有问题请随时问我。例如：“迟到怎么算？”</div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="chat-input" class="input" placeholder="输入问题..." onkeypress="if(event.key==='Enter') app.sendChat()">
+                        <button onclick="app.sendChat()" class="btn btn-primary">发送</button>
+                    </div>
+                </div>
+                <div class="card h-full">
+                    <h3 class="text-lg mb-4">参考文档</h3>
+                    <ul class="text-sm text-secondary space-y-2" style="list-style: none;">
+                        <li class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                            📄 员工考勤管理制度.pdf
+                        </li>
+                        <li class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                            📄 培训积分管理办法.docx
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- End Main Container -->
+
+    <!-- Modal: Create User -->
+    <div id="modal-user" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">新建用户</div>
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label class="text-sm font-bold block mb-1">姓名</label>
+                    <input type="text" id="mu-name" class="input">
+                </div>
+                <div>
+                    <label class="text-sm font-bold block mb-1">工号</label>
+                    <input type="text" id="mu-id" class="input">
+                </div>
+                <div>
+                    <label class="text-sm font-bold block mb-1">部门</label>
+                    <select id="mu-dept" class="input">
+                        <option>研发部</option>
+                        <option>市场部</option>
+                        <option>人事部</option>
+                        <option>财务部</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="app.closeUserModal()" class="btn btn-secondary">取消</button>
+                <button onclick="app.saveUser()" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirm Dialog -->
+    <div id="modal-confirm" class="modal-overlay">
+        <div class="modal" style="max-width: 400px;">
+            <h3 class="text-lg font-bold mb-2" id="mc-title">确认操作</h3>
+            <p class="text-secondary mb-6" id="mc-text">确定要执行此操作吗？</p>
+            <div class="modal-footer">
+                <button onclick="ui.closeConfirm()" class="btn btn-secondary">取消</button>
+                <button id="mc-btn-ok" class="btn btn-primary">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data ---
+        const db = {
+            users: [
+                { id: 'admin', name: '管理员', role: 'admin', dept: '管理部' },
+                { id: 'emp001', name: '张三', role: 'employee', dept: '研发部' },
+                { id: 'emp002', name: '李四', role: 'employee', dept: '市场部' },
+            ],
+            trainings: [
+                { id: 1, title: '2025年Q1全员安全意识培训', time: '2025-01-15 14:00', status: '进行中', trainer: '赵六', limit: 100, applied: 45 },
+                { id: 2, title: '高级架构设计实战', time: '2025-02-20 09:30', status: '报名中', trainer: '钱七', limit: 30, applied: 12 },
+                { id: 3, title: '商务礼仪与沟通', time: '2024-12-10 10:00', status: '已结束', trainer: '外部讲师', limit: 50, applied: 50 },
+            ],
+            myTrainings: [] // [id, id]
+        };
+
+        let currentUser = null;
+
+        // --- UI Utils ---
+        const ui = {
+            toast: (msg, type = 'success') => {
+                const container = document.getElementById('toast-container');
+                const el = document.createElement('div');
+                el.className = `toast ${type}`;
+                el.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'} ${msg}</span>`;
+                container.appendChild(el);
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateX(100%)';
+                    setTimeout(() => el.remove(), 300);
+                }, 3000);
+            },
+            
+            confirm: (title, text, onConfirm) => {
+                document.getElementById('mc-title').innerText = title;
+                document.getElementById('mc-text').innerText = text;
+                const okBtn = document.getElementById('mc-btn-ok');
+                okBtn.onclick = () => {
+                    onConfirm();
+                    ui.closeConfirm();
+                };
+                document.getElementById('modal-confirm').classList.add('active');
+            },
+
+            closeConfirm: () => {
+                document.getElementById('modal-confirm').classList.remove('active');
+            }
+        };
+
+        // --- Router ---
+        const router = {
+            current: 'view-login',
+            history: [],
+            go: (viewId) => {
+                document.getElementById(router.current).classList.add('hidden');
+                document.getElementById('view-' + viewId).classList.remove('hidden');
+                
+                if (viewId !== 'login' && viewId !== router.current) {
+                    router.history.push(router.current);
+                }
+                router.current = 'view-' + viewId;
+
+                // Refresh Logic
+                if (viewId === 'admin-home') app.renderAdminHome();
+                if (viewId === 'user-mgmt') app.renderUserList();
+                if (viewId === 'training-mgmt') app.renderTrainingList();
+                if (viewId === 'employee-home') app.renderEmployeeHome();
+                if (viewId === 'mobile-signin') app.initMobile();
+                if (viewId === 'training-detail') app.renderTrainingDetail();
+            },
+            back: () => {
+                if (router.history.length) {
+                    const prev = router.history.pop();
+                    document.getElementById(router.current).classList.add('hidden');
+                    document.getElementById(prev).classList.remove('hidden');
+                    router.current = prev;
+                }
+            }
+        };
+
+        // --- Auth ---
+        const auth = {
+            login: () => {
+                const id = document.getElementById('login-id').value;
+                const user = db.users.find(u => u.id === id);
+                if (!user) return ui.toast('用户不存在', 'error');
+
+                currentUser = user;
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('main-header').classList.remove('hidden');
+                
+                document.getElementById('user-name-display').innerText = user.name;
+                document.getElementById('user-role-display').innerText = user.role === 'admin' ? '管理员' : '员工';
+
+                if (user.role === 'admin') {
+                    document.getElementById('admin-nav').classList.remove('hidden');
+                    document.getElementById('employee-nav').classList.add('hidden');
+                    router.go('admin-home');
+                } else {
+                    document.getElementById('admin-nav').classList.add('hidden');
+                    document.getElementById('employee-nav').classList.remove('hidden');
+                    router.go('employee-home');
+                }
+                ui.toast(`欢迎回来，${user.name}`);
+            },
+            logout: () => {
+                currentUser = null;
+                location.reload(); // Simple reset
+            }
+        };
+
+        // --- App Logic ---
+        const app = {
+            // Admin Home
+            renderAdminHome: () => {
+                const list = db.trainings.slice(0, 3);
+                document.getElementById('home-recent-list').innerHTML = list.map(t => `
+                    <tr>
+                        <td class="font-bold text-main">${t.title}</td>
+                        <td class="text-secondary">${t.time.split(' ')[0]}</td>
+                        <td><span class="tag ${getStatusColor(t.status)}">${t.status}</span></td>
+                    </tr>
+                `).join('');
+            },
+
+            // User Management
+            renderUserList: () => {
+                document.getElementById('user-table-body').innerHTML = db.users.map(u => `
+                    <tr>
+                        <td class="font-bold">${u.name}</td>
+                        <td class="text-secondary">${u.id}</td>
+                        <td>${u.dept}</td>
+                        <td><span class="tag tag-green">启用</span></td>
+                        <td style="text-align: right;">
+                            <button class="btn btn-secondary btn-sm" onclick="ui.toast('功能开发中', 'warning')">编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="app.deleteUser('${u.id}')">删除</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+            openUserModal: () => {
+                document.getElementById('mu-name').value = '';
+                document.getElementById('mu-id').value = '';
+                document.getElementById('modal-user').classList.add('active');
+            },
+            closeUserModal: () => {
+                document.getElementById('modal-user').classList.remove('active');
+            },
+            saveUser: () => {
+                const name = document.getElementById('mu-name').value;
+                const id = document.getElementById('mu-id').value;
+                const dept = document.getElementById('mu-dept').value;
+                
+                if (!name || !id) return ui.toast('请填写完整信息', 'error');
+                
+                db.users.push({ id, name, dept, role: 'employee' });
+                app.closeUserModal();
+                app.renderUserList();
+                ui.toast('用户创建成功');
+            },
+            deleteUser: (id) => {
+                if (id === 'admin') return ui.toast('无法删除管理员', 'error');
+                ui.confirm('删除用户', '确定要删除该用户吗？此操作无法撤销。', () => {
+                    db.users = db.users.filter(u => u.id !== id);
+                    app.renderUserList();
+                    ui.toast('用户已删除');
+                });
+            },
+
+            // Training Management
+            renderTrainingList: () => {
+                document.getElementById('training-table-body').innerHTML = db.trainings.map(t => `
+                    <tr>
+                        <td class="font-bold">${t.title}</td>
+                        <td class="text-secondary">${t.time}</td>
+                        <td>${t.trainer}</td>
+                        <td>${t.applied} / ${t.limit}</td>
+                        <td><span class="tag ${getStatusColor(t.status)}">${t.status}</span></td>
+                        <td style="text-align: right;">
+                             <button class="btn btn-secondary btn-sm" onclick="app.viewTrainingDetail(${t.id})">详情</button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+            viewTrainingDetail: (id) => {
+                app.currentTrainingId = id;
+                router.go('training-detail');
+            },
+            renderTrainingDetail: () => {
+                const id = app.currentTrainingId;
+                const t = db.trainings.find(x => x.id === id);
+                if (!t) return;
+
+                document.getElementById('td-title').innerText = t.title;
+                document.getElementById('td-trainer').innerText = t.trainer;
+                document.getElementById('td-time').innerText = t.time;
+                document.getElementById('td-status').innerHTML = t.status;
+                document.getElementById('td-status').className = `tag ${getStatusColor(t.status)}`;
+                document.getElementById('td-desc').innerText = '这里是培训的详细介绍内容，包含课程大纲、注意事项等...';
+                document.getElementById('td-location').innerText = '305会议室'; // Mock data
+
+                // Mock Stats
+                const applied = t.applied;
+                const signed = Math.floor(applied * 0.9);
+                const late = Math.floor(signed * 0.1);
+                
+                document.getElementById('td-stat-applied').innerText = applied;
+                document.getElementById('td-stat-signed').innerText = signed;
+                document.getElementById('td-stat-late').innerText = late;
+                document.getElementById('td-stat-rate').innerText = applied > 0 ? Math.floor((signed / applied) * 100) + '%' : '0%';
+
+                // Mock Student List
+                const depts = ['研发部', '市场部', '人事部', '财务部'];
+                const names = ['张三', '李四', '王五', '赵六', '孙七', '周八'];
+                let rows = '';
+                for(let i=0; i<applied; i++) {
+                    const name = names[i % names.length] + (i+1);
+                    const dept = depts[i % depts.length];
+                    const isSigned = i < signed;
+                    const isLate = i < late;
+                    const status = isSigned ? (isLate ? '<span class="text-orange-500">迟到</span>' : '<span class="text-green-600">正常</span>') : '<span class="text-gray-400">未签到</span>';
+                    
+                    rows += `
+                        <tr>
+                            <td>${name}</td>
+                            <td>${dept}</td>
+                            <td class="text-secondary">2025-01-10 10:00</td>
+                            <td class="text-secondary">${isSigned ? '08:55:00' : '-'}</td>
+                            <td>${status}</td>
+                        </tr>
+                    `;
+                }
+                document.getElementById('td-student-list').innerHTML = rows;
+            },
+            saveTraining: () => {
+                const title = document.getElementById('tf-title').value;
+                if (!title) return ui.toast('请输入培训名称', 'error');
+                
+                db.trainings.unshift({
+                    id: Date.now(),
+                    title: title,
+                    time: document.getElementById('tf-start').value.replace('T', ' ') || '2025-05-01 09:00',
+                    status: '报名中',
+                    trainer: document.getElementById('tf-trainer').value || '未定',
+                    limit: 50,
+                    applied: 0
+                });
+                ui.toast('发布成功');
+                router.go('training-mgmt');
+            },
+
+            // Employee Logic
+            renderEmployeeHome: () => {
+                const my = db.trainings.filter(t => db.myTrainings.includes(t.id));
+                const available = db.trainings.filter(t => !db.myTrainings.includes(t.id) && t.status === '报名中');
+
+                document.getElementById('emp-todo-list').innerHTML = my.length ? my.map(t => `
+                    <div class="card p-4 flex justify-between items-center border-l-4 border-l-blue-500">
+                        <div>
+                            <div class="font-bold text-lg">${t.title}</div>
+                            <div class="text-sm text-secondary">⏰ ${t.time} | 👤 ${t.trainer}</div>
+                        </div>
+                        <span class="tag ${getStatusColor(t.status)}">${t.status}</span>
+                    </div>
+                `).join('') : '<div class="text-center text-secondary py-4">暂无待参加的培训</div>';
+
+                document.getElementById('emp-available-list').innerHTML = available.length ? available.map(t => `
+                    <div class="card p-4 flex flex-col justify-between h-full">
+                        <div class="mb-4">
+                            <div class="font-bold text-lg mb-2">${t.title}</div>
+                            <div class="text-sm text-secondary">⏰ ${t.time}</div>
+                            <div class="text-sm text-secondary">📍 地点待定</div>
+                        </div>
+                        <button onclick="app.applyTraining(${t.id})" class="btn btn-secondary w-full">立即报名</button>
+                    </div>
+                `).join('') : '<div class="col-span-2 text-center text-secondary">暂无新培训</div>';
+            },
+            applyTraining: (id) => {
+                ui.confirm('确认报名', '确定要报名参加该培训吗？', () => {
+                    db.myTrainings.push(id);
+                    app.renderEmployeeHome();
+                    ui.toast('报名成功！请准时参加');
+                });
+            },
+
+            // Mobile Sign In
+            initMobile: () => {
+                document.getElementById('ms-step-scan').classList.remove('hidden');
+                document.getElementById('ms-step-confirm').classList.add('hidden');
+                document.getElementById('ms-step-success').classList.add('hidden');
+            },
+            mobileScanSuccess: () => {
+                document.getElementById('ms-step-scan').classList.add('hidden');
+                document.getElementById('ms-step-confirm').classList.remove('hidden');
+            },
+            mobileDoSign: () => {
+                document.getElementById('ms-step-confirm').classList.add('hidden');
+                document.getElementById('ms-step-success').classList.remove('hidden');
+                document.getElementById('ms-success-time').innerText = '时间: ' + new Date().toLocaleTimeString();
+            },
+
+            // Chat
+            sendChat: () => {
+                const input = document.getElementById('chat-input');
+                const text = input.value.trim();
+                if (!text) return;
+                
+                const box = document.getElementById('chat-msgs');
+                box.innerHTML += `<div class="msg user">${text}</div>`;
+                input.value = '';
+                box.scrollTop = box.scrollHeight;
+
+                setTimeout(() => {
+                    let reply = "这个问题我还在学习中...";
+                    if (text.includes('假')) reply = "根据考勤制度，事假需提前1天申请，病假需提供医生证明。";
+                    if (text.includes('迟到')) reply = "培训迟到15分钟以上将记录为缺勤，影响季度绩效。";
+                    box.innerHTML += `<div class="msg bot">${reply}</div>`;
+                    box.scrollTop = box.scrollHeight;
+                }, 800);
+            }
+        };
+
+        function getStatusColor(status) {
+            if (status === '进行中') return 'tag-green';
+            if (status === '报名中') return 'tag-blue';
+            return 'tag-gray';
+        }
+
+    </script>
+</body>
+</html>

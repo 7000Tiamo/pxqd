@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/training_db?useUnicode=true&characterEncoding=utf8&useSSL=false
+    username: postgres
+    password: 123456
+
+logging:
+  level:
+    com.training: debug
+    org.springframework.web: debug
+
+

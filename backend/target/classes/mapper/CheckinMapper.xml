@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.training.mapper.CheckinMapper">
+    
+    <resultMap id="BaseResultMap" type="com.training.entity.Checkin">
+        <id column="id" property="id"/>
+        <result column="training_id" property="trainingId"/>
+        <result column="user_id" property="userId"/>
+        <result column="checkin_time" property="checkinTime"/>
+        <result column="checkout_time" property="checkoutTime"/>
+        <result column="is_late" property="isLate"/>
+        <result column="is_early_leave" property="isEarlyLeave"/>
+        <result column="state" property="state"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+    
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM training_checkins WHERE id = #{id} AND deleted = 0
+    </select>
+    
+    <select id="selectByTrainingId" resultMap="BaseResultMap">
+        SELECT * FROM training_checkins 
+        WHERE training_id = #{trainingId} AND deleted = 0
+        ORDER BY checkin_time DESC
+    </select>
+    
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT * FROM training_checkins 
+        WHERE user_id = #{userId} AND deleted = 0
+        ORDER BY checkin_time DESC
+    </select>
+    
+    <select id="selectByTrainingAndUser" resultMap="BaseResultMap">
+        SELECT * FROM training_checkins 
+        WHERE training_id = #{trainingId} AND user_id = #{userId} AND deleted = 0
+        LIMIT 1
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO training_checkins (training_id, user_id, checkin_time, checkout_time, is_late, is_early_leave, state, created_at, updated_at, deleted)
+        VALUES (#{trainingId}, #{userId}, #{checkinTime}, #{checkoutTime}, #{isLate}, #{isEarlyLeave}, #{state}, #{createdAt}, #{updatedAt}, #{deleted})
+    </insert>
+    
+    <update id="updateById">
+        UPDATE training_checkins SET
+            checkin_time = #{checkinTime},
+            checkout_time = #{checkoutTime},
+            is_late = #{isLate},
+            is_early_leave = #{isEarlyLeave},
+            state = #{state},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <update id="deleteById">
+        UPDATE training_checkins SET deleted = 1 WHERE id = #{id}
+    </update>
+    
+</mapper>
+

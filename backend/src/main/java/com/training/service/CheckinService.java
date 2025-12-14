@@ -1,0 +1,218 @@
+package com.training.service;
+
+import com.training.entity.Checkin;
+import com.training.entity.Enrollment;
+import com.training.entity.Training;
+import com.training.mapper.CheckinMapper;
+import com.training.mapper.EnrollmentMapper;
+import com.training.mapper.TrainingMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class CheckinService {
+
+    private final CheckinMapper checkinMapper;
+    private final TrainingMapper trainingMapper;
+    private final EnrollmentMapper enrollmentMapper;
+
+    /**
+     * 签到
+     */
+    @Transactional
+    public Checkin checkin(Long trainingId, Long userId, Double latitude, Double longitude) {
+        Training training = trainingMapper.selectById(trainingId);
+        if (training == null || training.getDeleted() == 1) {
+            throw new RuntimeException("培训不存在");
+        }
+
+        if (training.getNeedSignup() != null && training.getNeedSignup()) {
+            if (!isEnrolled(trainingId, userId)) {
+                throw new RuntimeException("您未报名该培训");
+            }
+        }
+
+        Checkin existing = checkinMapper.selectByTrainingAndUser(trainingId, userId);
+        if (existing != null && "signed".equals(existing.getState())) {
+            throw new RuntimeException("您已签到");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        boolean isLate = false;
+        if (training.getStartTime() != null && training.getLateMinutes() != null) {
+            LocalDateTime lateThreshold = training.getStartTime().plusMinutes(training.getLateMinutes());
+            isLate = now.isAfter(lateThreshold);
+        }
+
+        if (training.getGpsRequired() != null && training.getGpsRequired()) {
+            if (latitude == null || longitude == null) {
+                throw new RuntimeException("需要开启定位权限");
+            }
+        }
+
+        if (existing == null) {
+            existing = new Checkin();
+            existing.setTrainingId(trainingId);
+            existing.setUserId(userId);
+            existing.setCreatedAt(now);
+            existing.setDeleted(0);
+            checkinMapper.insert(existing);
+        }
+
+        existing.setCheckinTime(now);
+        existing.setState("signed");
+        existing.setIsLate(isLate);
+        existing.setUpdatedAt(now);
+
+        checkinMapper.updateById(existing);
+        return existing;
+    }
+
+    /**
+     * 签退
+     */
+    @Transactional
+    public Checkin checkout(Long trainingId, Long userId) {
+        Training training = trainingMapper.selectById(trainingId);
+        if (training == null || training.getDeleted() == 1) {
+            throw new RuntimeException("培训不存在");
+        }
+
+        if (training.getNeedCheckout() == null || !training.getNeedCheckout()) {
+            throw new RuntimeException("该培训不需要签退");
+        }
+
+        Checkin checkin = checkinMapper.selectByTrainingAndUser(trainingId, userId);
+        if (checkin == null || !"signed".equals(checkin.getState())) {
+            throw new RuntimeException("请先完成签到");
+        }
+
+        if ("checked_out".equals(checkin.getState())) {
+            throw new RuntimeException("您已签退");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        boolean isEarlyLeave = false;
+        if (training.getEndTime() != null && training.getEarlyLeaveMinutes() != null) {
+            LocalDateTime earlyThreshold = training.getEndTime().minusMinutes(training.getEarlyLeaveMinutes());
+            isEarlyLeave = now.isBefore(earlyThreshold);
+        }
+
+        checkin.setCheckoutTime(now);
+        checkin.setState("checked_out");
+        checkin.setIsEarlyLeave(isEarlyLeave);
+        checkin.setUpdatedAt(now);
+
+        checkinMapper.updateById(checkin);
+        return checkin;
+    }
+
+    /**
+     * 获取用户的签到记录
+     */
+    public List<Checkin> getUserCheckins(Long userId) {
+        return checkinMapper.selectByUserId(userId);
+    }
+
+    /**
+     * 获取培训的签到记录
+     */
+    public List<Checkin> getTrainingCheckins(Long trainingId) {
+        return checkinMapper.selectByTrainingId(trainingId);
+    }
+
+    /**
+     * 获取签到统计
+     */
+    public CheckinStats getCheckinStats(Long trainingId) {
+        List<Checkin> all = checkinMapper.selectByTrainingId(trainingId);
+        long signedCount = all.stream().filter(c -> "signed".equals(c.getState()) || "checked_out".equals(c.getState()))
+                .count();
+        long lateCount = all.stream().filter(c -> c.getIsLate() != null && c.getIsLate()).count();
+        long checkoutCount = all.stream().filter(c -> "checked_out".equals(c.getState())).count();
+        long earlyLeaveCount = all.stream().filter(c -> c.getIsEarlyLeave() != null && c.getIsEarlyLeave()).count();
+
+        int appliedCount = enrollmentMapper.countByTrainingId(trainingId);
+        double signRate = appliedCount > 0 ? (signedCount * 100.0 / appliedCount) : 0.0;
+
+        CheckinStats stats = new CheckinStats();
+        stats.setAppliedCount(appliedCount);
+        stats.setSignedCount((int) signedCount);
+        stats.setLateCount((int) lateCount);
+        stats.setCheckoutCount((int) checkoutCount);
+        stats.setEarlyLeaveCount((int) earlyLeaveCount);
+        stats.setSignRate(signRate);
+
+        return stats;
+    }
+
+    /**
+     * 检查是否已报名
+     */
+    private boolean isEnrolled(Long trainingId, Long userId) {
+        Enrollment enrollment = enrollmentMapper.selectByTrainingAndUser(trainingId, userId);
+        return enrollment != null;
+    }
+
+    public static class CheckinStats {
+        private Integer appliedCount;
+        private Integer signedCount;
+        private Integer lateCount;
+        private Integer checkoutCount;
+        private Integer earlyLeaveCount;
+        private Double signRate;
+
+        public Integer getAppliedCount() {
+            return appliedCount;
+        }
+
+        public void setAppliedCount(Integer appliedCount) {
+            this.appliedCount = appliedCount;
+        }
+
+        public Integer getSignedCount() {
+            return signedCount;
+        }
+
+        public void setSignedCount(Integer signedCount) {
+            this.signedCount = signedCount;
+        }
+
+        public Integer getLateCount() {
+            return lateCount;
+        }
+
+        public void setLateCount(Integer lateCount) {
+            this.lateCount = lateCount;
+        }
+
+        public Integer getCheckoutCount() {
+            return checkoutCount;
+        }
+
+        public void setCheckoutCount(Integer checkoutCount) {
+            this.checkoutCount = checkoutCount;
+        }
+
+        public Integer getEarlyLeaveCount() {
+            return earlyLeaveCount;
+        }
+
+        public void setEarlyLeaveCount(Integer earlyLeaveCount) {
+            this.earlyLeaveCount = earlyLeaveCount;
+        }
+
+        public Double getSignRate() {
+            return signRate;
+        }
+
+        public void setSignRate(Double signRate) {
+            this.signRate = signRate;
+        }
+    }
+}
