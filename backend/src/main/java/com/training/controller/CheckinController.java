@@ -80,6 +80,35 @@ public class CheckinController {
         CheckinService.CheckinStats stats = checkinService.getCheckinStats(trainingId);
         return ApiResponse.success(stats);
     }
+
+
+
+    /**
+     * 公开扫码签到（通过手机号或工号）
+     */
+    @PostMapping("/public")
+    public ApiResponse<Checkin> publicCheckin(@RequestBody Map<String, String> request) {
+        String trainingIdStr = request.get("trainingId");
+        String identifier = request.get("employeeNo"); // 手机号 或 工号
+
+        if (trainingIdStr == null || identifier == null || identifier.trim().isEmpty()) {
+            return ApiResponse.error("培训ID和手机号/工号不能为空");
+        }
+
+        Long trainingId;
+        try {
+            trainingId = Long.valueOf(trainingIdStr);
+        } catch (NumberFormatException e) {
+            return ApiResponse.error("无效的培训ID");
+        }
+
+        try {
+            Checkin checkin = checkinService.publicCheckinByEmployeeNo(trainingId, identifier);
+            return ApiResponse.success(checkin);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
 }
 
 

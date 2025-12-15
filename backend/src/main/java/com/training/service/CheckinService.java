@@ -9,6 +9,7 @@ import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
 import com.training.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -173,6 +174,19 @@ public class CheckinService {
     private boolean isEnrolled(Long trainingId, Long userId) {
         Enrollment enrollment = enrollmentMapper.selectByTrainingAndUser(trainingId, userId);
         return enrollment != null;
+    }
+
+
+
+    /**
+     * 通过工号进行公开签到
+     */
+    public Checkin publicCheckinByEmployeeNo(Long trainingId, String employeeNo) {
+        // 1. 根据工号查用户
+        User user = userMapper.selectByEmployeeNo(employeeNo);
+
+        // 2. 复用你已有的签到逻辑（传 userId）
+        return checkin(trainingId, user.getId(), null, null); // latitude/longitude 暂不传
     }
 
     public static class CheckinStats {
