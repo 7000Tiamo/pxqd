@@ -184,9 +184,9 @@ public class CheckinService {
     /**
      * 通过工号进行公开签到
      */
-    public Checkin publicCheckinByEmployeeNo(Long trainingId, String employeeNo) {
+    public Checkin publicCheckinByUserName(Long trainingId, String name) {
         // 1. 根据工号查用户
-        User user = userMapper.selectByEmployeeNo(employeeNo);
+        User user = userMapper.selectByUsername(name);
 
         // 2. 复用你已有的签到逻辑（传 userId）
         return checkin(trainingId, user.getId(), null, null); // latitude/longitude 暂不传

@@ -28,7 +28,7 @@ public class QrCodeController {
     public ResponseEntity<byte[]> generateCheckinQrCode(@RequestParam Long trainingId) {
         try {
             // 构造签到页面 URL
-            String checkinUrl = frontendDomain + "/checkin.html?training_id=" + trainingId;
+            String checkinUrl = frontendDomain + "/checkin?training_id=" + trainingId;
 
             // 生成二维码（300x300 像素）
             byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkinUrl, 300, 300);
