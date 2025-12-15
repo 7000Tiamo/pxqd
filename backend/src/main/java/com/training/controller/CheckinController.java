@@ -1,84 +1,69 @@
 package com.training.controller;
 
-import com.training.common.api.ApiResponse;
+import com.training.common.api.Result;
+import com.training.dto.CheckinDTO;
+import com.training.dto.CheckoutDTO;
 import com.training.entity.Checkin;
 import com.training.service.CheckinService;
+import java.util.List;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/checkins")
 @RequiredArgsConstructor
 public class CheckinController {
-    
+
     private final CheckinService checkinService;
-    
+
     /**
      * 签到
      */
     @PostMapping
-    public ApiResponse<Checkin> checkin(@RequestBody Map<String, Object> request) {
-        Long trainingId = Long.valueOf(request.get("trainingId").toString());
-        Long userId = Long.valueOf(request.get("userId").toString());
-        Double latitude = request.get("latitude") != null ? Double.valueOf(request.get("latitude").toString()) : null;
-        Double longitude = request.get("longitude") != null ? Double.valueOf(request.get("longitude").toString()) : null;
-        
-        try {
-            Checkin checkin = checkinService.checkin(trainingId, userId, latitude, longitude);
-            return ApiResponse.success(checkin);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+    public Result<Checkin> checkin(@Valid @RequestBody CheckinDTO request) {
+        Checkin checkin = checkinService.checkin(
+                request.getTrainingId(),
+                request.getUserId(),
+                request.getLatitude(),
+                request.getLongitude());
+        return Result.success(checkin);
     }
-    
+
     /**
      * 签退
      */
     @PostMapping("/checkout")
-    public ApiResponse<Checkin> checkout(@RequestBody Map<String, Long> request) {
-        Long trainingId = request.get("trainingId");
-        Long userId = request.get("userId");
-        
-        if (trainingId == null || userId == null) {
-            return ApiResponse.error("参数错误");
-        }
-        
-        try {
-            Checkin checkin = checkinService.checkout(trainingId, userId);
-            return ApiResponse.success(checkin);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+    public Result<Checkin> checkout(@Valid @RequestBody CheckoutDTO request) {
+        Checkin checkin = checkinService.checkout(request.getTrainingId(), request.getUserId());
+        return Result.success(checkin);
     }
-    
+
     /**
      * 获取用户的签到记录
      */
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<Checkin>> getUserCheckins(@PathVariable Long userId) {
+    public Result<List<Checkin>> getUserCheckins(@PathVariable Long userId) {
         List<Checkin> list = checkinService.getUserCheckins(userId);
-        return ApiResponse.success(list);
+        return Result.success(list);
     }
-    
+
     /**
      * 获取培训的签到记录
      */
     @GetMapping("/training/{trainingId}")
-    public ApiResponse<List<Checkin>> getTrainingCheckins(@PathVariable Long trainingId) {
+    public Result<List<Checkin>> getTrainingCheckins(@PathVariable Long trainingId) {
         List<Checkin> list = checkinService.getTrainingCheckins(trainingId);
-        return ApiResponse.success(list);
+        return Result.success(list);
     }
-    
+
     /**
      * 获取签到统计
      */
     @GetMapping("/stats/{trainingId}")
-    public ApiResponse<CheckinService.CheckinStats> getCheckinStats(@PathVariable Long trainingId) {
+    public Result<CheckinService.CheckinStats> getCheckinStats(@PathVariable Long trainingId) {
         CheckinService.CheckinStats stats = checkinService.getCheckinStats(trainingId);
-        return ApiResponse.success(stats);
+        return Result.success(stats);
     }
 }
 

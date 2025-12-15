@@ -2,14 +2,16 @@ package com.training.service;
 
 import com.training.common.PageResult;
 import com.training.dto.TrainingCreateDTO;
-import com.training.dto.TrainingDetailVO;
 import com.training.dto.TrainingUpdateDTO;
 import com.training.entity.Checkin;
-import com.training.entity.Enrollment;
+import com.training.common.api.BizException;
+import com.training.common.api.ErrorCode;
+import com.training.common.api.ErrorMessages;
 import com.training.entity.Training;
 import com.training.mapper.CheckinMapper;
 import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
+import com.training.vo.TrainingDetailVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +62,7 @@ public class TrainingService {
     public boolean updateTraining(Long id, TrainingUpdateDTO dto) {
         Training training = trainingMapper.selectById(id);
         if (training == null) {
-            return false;
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.TRAINING_NOT_FOUND);
         }
 
         if (dto.getTitle() != null)
@@ -104,11 +105,11 @@ public class TrainingService {
     public boolean publishTraining(Long id) {
         Training training = trainingMapper.selectById(id);
         if (training == null) {
-            return false;
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.TRAINING_NOT_FOUND);
         }
 
         if (training.getStartTime() == null || training.getEndTime() == null) {
-            throw new RuntimeException("培训时间未设置");
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_TIME_NOT_SET);
         }
 
         training.setStatus("open");
@@ -229,7 +230,7 @@ public class TrainingService {
     public boolean deleteTraining(Long id) {
         Training training = trainingMapper.selectById(id);
         if (training == null) {
-            return false;
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.TRAINING_NOT_FOUND);
         }
         return trainingMapper.deleteById(id) > 0;
     }

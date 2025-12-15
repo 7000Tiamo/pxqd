@@ -1,5 +1,8 @@
 package com.training.service;
 
+import com.training.common.api.BizException;
+import com.training.common.api.ErrorCode;
+   import com.training.common.api.ErrorMessages;
 import com.training.entity.Checkin;
 import com.training.entity.Enrollment;
 import com.training.entity.Training;
@@ -32,24 +35,24 @@ public class CheckinService {
         // 校验培训是否存在
         Training training = trainingMapper.selectById(trainingId);
         if (training == null) {
-            throw new RuntimeException("培训不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.TRAINING_NOT_FOUND);
         }
 
         // 校验用户是否存在
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.USER_NOT_FOUND);
         }
 
         if (training.getNeedSignup() != null && training.getNeedSignup()) {
             if (!isEnrolled(trainingId, userId)) {
-                throw new RuntimeException("您未报名该培训");
+                throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NOT_SIGNEDUP);
             }
         }
 
         Checkin existing = checkinMapper.selectByTrainingAndUser(trainingId, userId);
         if (existing != null && "signed".equals(existing.getState())) {
-            throw new RuntimeException("您已签到");
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_ALREADY_CHECKIN);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -61,7 +64,7 @@ public class CheckinService {
 
         if (training.getGpsRequired() != null && training.getGpsRequired()) {
             if (latitude == null || longitude == null) {
-                throw new RuntimeException("需要开启定位权限");
+                throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NEED_GPS);
             }
         }
 
@@ -90,26 +93,26 @@ public class CheckinService {
         // 校验培训是否存在
         Training training = trainingMapper.selectById(trainingId);
         if (training == null) {
-            throw new RuntimeException("培训不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.TRAINING_NOT_FOUND);
         }
 
         // 校验用户是否存在
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.USER_NOT_FOUND);
         }
 
         if (training.getNeedCheckout() == null || !training.getNeedCheckout()) {
-            throw new RuntimeException("该培训不需要签退");
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NOT_NEED_CHECKOUT);
         }
 
         Checkin checkin = checkinMapper.selectByTrainingAndUser(trainingId, userId);
         if (checkin == null || !"signed".equals(checkin.getState())) {
-            throw new RuntimeException("请先完成签到");
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NEED_CHECKIN_FIRST);
         }
 
         if ("checked_out".equals(checkin.getState())) {
-            throw new RuntimeException("您已签退");
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_ALREADY_CHECKOUT);
         }
 
         LocalDateTime now = LocalDateTime.now();

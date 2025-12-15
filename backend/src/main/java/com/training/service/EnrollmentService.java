@@ -1,17 +1,24 @@
 package com.training.service;
 
+import com.training.common.api.BizException;
+import com.training.common.api.ErrorCode;
+import com.training.common.api.ErrorMessages;
+import com.training.entity.Checkin;
 import com.training.entity.Enrollment;
 import com.training.entity.Training;
 import com.training.entity.User;
+import com.training.mapper.CheckinMapper;
 import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
 import com.training.mapper.UserMapper;
+import com.training.vo.EnrollmentVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +27,7 @@ public class EnrollmentService {
     private final EnrollmentMapper enrollmentMapper;
     private final TrainingMapper trainingMapper;
     private final UserMapper userMapper;
+    private final CheckinMapper checkinMapper;
 
     /**
      * 报名培训
@@ -29,28 +37,28 @@ public class EnrollmentService {
         // 校验培训是否存在
         Training training = trainingMapper.selectById(trainingId);
         if (training == null) {
-            throw new RuntimeException("培训不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.TRAINING_NOT_FOUND);
         }
 
         // 校验用户是否存在
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.USER_NOT_FOUND);
         }
 
         if (training.getNeedSignup() == null || !training.getNeedSignup()) {
-            throw new RuntimeException("该培训不需要报名");
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NOT_NEED_SIGNUP);
         }
 
         Enrollment existing = enrollmentMapper.selectByTrainingAndUser(trainingId, userId);
         if (existing != null) {
-            throw new RuntimeException("您已报名该培训");
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_ALREADY_SIGNEDUP);
         }
 
         if (training.getMaxParticipants() != null && training.getMaxParticipants() > 0) {
             int enrolledCount = enrollmentMapper.countByTrainingId(trainingId);
             if (enrolledCount >= training.getMaxParticipants()) {
-                throw new RuntimeException("报名人数已满");
+                throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_FULL);
             }
         }
 
@@ -72,18 +80,18 @@ public class EnrollmentService {
         // 校验培训是否存在
         Training training = trainingMapper.selectById(trainingId);
         if (training == null) {
-            throw new RuntimeException("培训不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.TRAINING_NOT_FOUND);
         }
 
         // 校验用户是否存在
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.USER_NOT_FOUND);
         }
 
         Enrollment enrollment = enrollmentMapper.selectByTrainingAndUser(trainingId, userId);
         if (enrollment == null) {
-            throw new RuntimeException("未找到报名记录");
+            throw new BizException(ErrorCode.NOT_FOUND, ErrorMessages.ENROLLMENT_NOT_FOUND);
         }
 
         enrollment.setStatus("cancelled");
@@ -104,6 +112,39 @@ public class EnrollmentService {
      */
     public List<Enrollment> getTrainingEnrollments(Long trainingId) {
         return enrollmentMapper.selectByTrainingId(trainingId);
+    }
+
+    /**
+     * 获取培训报名列表（含用户与签到信息）
+     */
+    public List<EnrollmentVO> getTrainingEnrollmentVOs(Long trainingId) {
+        List<Enrollment> enrollments = getTrainingEnrollments(trainingId);
+        List<Checkin> checkins = checkinMapper.selectByTrainingId(trainingId);
+
+        return enrollments.stream().map(enrollment -> {
+            EnrollmentVO vo = new EnrollmentVO();
+            vo.setId(enrollment.getId());
+            vo.setTrainingId(enrollment.getTrainingId());
+            vo.setUserId(enrollment.getUserId());
+            vo.setStatus(enrollment.getStatus());
+            vo.setEnrolledAt(enrollment.getEnrolledAt());
+
+            User user = userMapper.selectById(enrollment.getUserId());
+            if (user != null) {
+                vo.setUserName(user.getName());
+                vo.setUserDept(user.getDept());
+            }
+
+            checkins.stream()
+                    .filter(c -> c.getUserId().equals(enrollment.getUserId()))
+                    .findFirst()
+                    .ifPresent(checkin -> {
+                        vo.setCheckinTime(checkin.getCheckinTime());
+                        vo.setIsLate(checkin.getIsLate());
+                    });
+
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     /**
