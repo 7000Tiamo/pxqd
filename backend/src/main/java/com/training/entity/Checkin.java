@@ -16,7 +16,6 @@ public class Checkin {
     private String state; // not_signed / signed / checked_out
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Integer deleted;
 }
 
 

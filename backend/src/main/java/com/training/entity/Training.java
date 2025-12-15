@@ -23,5 +23,4 @@ public class Training {
     private Integer maxParticipants;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Integer deleted;
 }

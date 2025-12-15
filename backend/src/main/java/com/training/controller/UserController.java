@@ -6,8 +6,8 @@ import com.training.dto.UserCreateDTO;
 import com.training.dto.UserUpdateDTO;
 import com.training.entity.User;
 import com.training.service.UserService;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,18 +60,16 @@ public class UserController {
     }
 
     /**
-     * 删除用户（软删除）
+     * 删除用户
      */
     @DeleteMapping("/{id}")
     public ApiResponse<Boolean> deleteUser(@PathVariable Long id) {
-        User user = userService.getById(id);
-        if (user == null) {
-            return ApiResponse.error("用户不存在");
+        try {
+            boolean result = userService.deleteUser(id);
+            return result ? ApiResponse.success(true) : ApiResponse.error("用户不存在");
+        } catch (Exception e) {
+            return ApiResponse.error("删除失败: " + e.getMessage());
         }
-        user.setDeleted(1);
-        user.setUpdatedAt(java.time.LocalDateTime.now());
-        boolean result = userService.updateUser(id, new UserUpdateDTO());
-        return result ? ApiResponse.success(true) : ApiResponse.error("删除失败");
     }
 
     /**

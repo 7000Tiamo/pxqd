@@ -14,46 +14,47 @@
         <result column="password" property="password"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
-        <result column="deleted" property="deleted"/>
     </resultMap>
     
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT * FROM users WHERE id = #{id} AND deleted = 0
+        SELECT * FROM users WHERE id = #{id}
     </select>
     
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT * FROM users WHERE deleted = 0 ORDER BY created_at DESC
+        SELECT * FROM users ORDER BY created_at DESC
     </select>
     
     <select id="selectByCondition" resultMap="BaseResultMap">
-        SELECT * FROM users WHERE deleted = 0
-        <if test="keyword != null and keyword != ''">
-            AND (name LIKE '%' || #{keyword} || '%'
-            OR employee_no LIKE '%' || #{keyword} || '%'
-            OR dept LIKE '%' || #{keyword} || '%')
-        </if>
+        SELECT * FROM users
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE '%' || #{keyword} || '%'
+                OR employee_no LIKE '%' || #{keyword} || '%'
+                OR dept LIKE '%' || #{keyword} || '%')
+            </if>
+        </where>
         ORDER BY created_at DESC
     </select>
     
     <select id="selectByUsername" resultMap="BaseResultMap">
-        SELECT * FROM users WHERE username = #{username} AND deleted = 0
+        SELECT * FROM users WHERE username = #{username}
     </select>
     
     <select id="selectByEmployeeNo" resultMap="BaseResultMap">
-        SELECT * FROM users WHERE employee_no = #{employeeNo} AND deleted = 0
+        SELECT * FROM users WHERE employee_no = #{employeeNo}
     </select>
     
     <select id="countByEmployeeNo" resultType="int">
         SELECT COUNT(*) FROM users 
-        WHERE employee_no = #{employeeNo} AND deleted = 0
+        WHERE employee_no = #{employeeNo}
         <if test="excludeId != null">
             AND id != #{excludeId}
         </if>
     </select>
     
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (username, name, employee_no, dept, phone, role, status, password, created_at, updated_at, deleted)
-        VALUES (#{username}, #{name}, #{employeeNo}, #{dept}, #{phone}, #{role}, #{status}, #{password}, #{createdAt}, #{updatedAt}, #{deleted})
+        INSERT INTO users (username, name, employee_no, dept, phone, role, status, password, created_at, updated_at)
+        VALUES (#{username}, #{name}, #{employeeNo}, #{dept}, #{phone}, #{role}, #{status}, #{password}, #{createdAt}, #{updatedAt})
     </insert>
     
     <update id="updateById">
@@ -67,9 +68,9 @@
         WHERE id = #{id}
     </update>
     
-    <update id="deleteById">
-        UPDATE users SET deleted = 1 WHERE id = #{id}
-    </update>
+    <delete id="deleteById">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
     
 </mapper>
 

@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/training_db?useUnicode=true&characterEncoding=utf8&useSSL=false
-    username: postgres
+    url: jdbc:postgresql://172.23.26.209:5432/postgres?useUnicode=true&characterEncoding=utf8&useSSL=false
+    username: root
     password: 123456
 
 logging:

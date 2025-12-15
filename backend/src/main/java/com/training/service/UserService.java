@@ -13,11 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,11 +32,18 @@ public class UserService {
      */
     @Transactional
     public User createUser(UserCreateDTO dto) {
+        // 校验用户名是否已存在
+        if (userMapper.selectByUsername(dto.getUsername()) != null) {
+            throw new RuntimeException("用户名已存在");
+        }
+        
+        // 校验工号是否已存在
         if (userMapper.countByEmployeeNo(dto.getEmployeeNo(), null) > 0) {
             throw new RuntimeException("工号已存在");
         }
 
         User user = new User();
+        user.setUsername(dto.getUsername());
         user.setName(dto.getName());
         user.setEmployeeNo(dto.getEmployeeNo());
         user.setDept(dto.getDept());
@@ -46,7 +53,6 @@ public class UserService {
         user.setPassword("e10adc3949ba59abbe56e057f20f883e");
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
-        user.setDeleted(0);
 
         userMapper.insert(user);
         return user;
@@ -89,7 +95,7 @@ public class UserService {
         long total = all.size();
         int start = (page - 1) * size;
         int end = Math.min(start + size, all.size());
-        List<User> records = start < all.size() ? all.subList(start, end) : List.of();
+        List<User> records = start < all.size() ? all.subList(start, end) : Collections.emptyList();
         return new PageResult<>(records, total, page, size);
     }
 
@@ -119,7 +125,11 @@ public class UserService {
                 continue;
             }
 
+            // 为 Excel 导入生成唯一的用户名，优先使用工号
+            String username = generateUniqueUsername(excel.getEmployeeNo());
+
             User user = new User();
+            user.setUsername(username);
             user.setName(excel.getName());
             user.setEmployeeNo(excel.getEmployeeNo());
             user.setDept(excel.getDept());
@@ -129,7 +139,6 @@ public class UserService {
             user.setPassword("e10adc3949ba59abbe56e057f20f883e");
             user.setCreatedAt(LocalDateTime.now());
             user.setUpdatedAt(LocalDateTime.now());
-            user.setDeleted(0);
 
             userMapper.insert(user);
             successCount++;
@@ -154,7 +163,7 @@ public class UserService {
 
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("utf-8");
-        String fileName = URLEncoder.encode("用户列表", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+        String fileName = URLEncoder.encode("用户列表", "UTF-8").replaceAll("\\+", "%20");
         response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
 
         EasyExcel.write(response.getOutputStream(), UserExcel.class)
@@ -163,7 +172,7 @@ public class UserService {
     }
 
     /**
-     * 删除用户（软删除）
+     * 删除用户
      */
     @Transactional
     public boolean deleteUser(Long id) {
@@ -171,8 +180,27 @@ public class UserService {
         if (user == null) {
             return false;
         }
-        user.setDeleted(1);
-        user.setUpdatedAt(LocalDateTime.now());
-        return userMapper.updateById(user) > 0;
+        return userMapper.deleteById(id) > 0;
+    }
+
+    /**
+     * 生成唯一的用户名
+     * 优先使用工号，如果工号已作为用户名使用，则添加时间戳后缀
+     */
+    private String generateUniqueUsername(String employeeNo) {
+        if (StrUtil.isBlank(employeeNo)) {
+            // 如果工号为空，使用时间戳作为用户名
+            return "user_" + System.currentTimeMillis();
+        }
+        
+        String username = employeeNo;
+        // 检查用户名是否已存在
+        int attempt = 0;
+        while (userMapper.selectByUsername(username) != null && attempt < 10) {
+            // 如果工号已作为用户名使用，则添加时间戳后缀
+            username = employeeNo + "_" + System.currentTimeMillis() + "_" + attempt;
+            attempt++;
+        }
+        return username;
     }
 }

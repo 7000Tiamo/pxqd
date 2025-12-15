@@ -6,8 +6,8 @@ import com.training.dto.TokenResponse;
 import com.training.entity.User;
 import com.training.mapper.UserMapper;
 import com.training.service.AuthService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

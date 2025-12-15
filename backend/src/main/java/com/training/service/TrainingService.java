@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,6 @@ public class TrainingService {
         training.setMaxParticipants(dto.getMaxParticipants());
         training.setCreatedAt(LocalDateTime.now());
         training.setUpdatedAt(LocalDateTime.now());
-        training.setDeleted(0);
 
         trainingMapper.insert(training);
         return training;
@@ -124,7 +124,7 @@ public class TrainingService {
         long total = all.size();
         int start = (page - 1) * size;
         int end = Math.min(start + size, all.size());
-        List<Training> records = start < all.size() ? all.subList(start, end) : List.of();
+        List<Training> records = start < all.size() ? all.subList(start, end) : Collections.emptyList();
         return new PageResult<>(records, total, page, size);
     }
 
@@ -223,7 +223,7 @@ public class TrainingService {
     }
 
     /**
-     * 删除培训（软删除）
+     * 删除培训
      */
     @Transactional
     public boolean deleteTraining(Long id) {
@@ -231,8 +231,6 @@ public class TrainingService {
         if (training == null) {
             return false;
         }
-        training.setDeleted(1);
-        training.setUpdatedAt(LocalDateTime.now());
-        return trainingMapper.updateById(training) > 0;
+        return trainingMapper.deleteById(id) > 0;
     }
 }

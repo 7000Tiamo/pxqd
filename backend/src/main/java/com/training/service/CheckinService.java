@@ -3,9 +3,11 @@ package com.training.service;
 import com.training.entity.Checkin;
 import com.training.entity.Enrollment;
 import com.training.entity.Training;
+import com.training.entity.User;
 import com.training.mapper.CheckinMapper;
 import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
+import com.training.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,15 +22,23 @@ public class CheckinService {
     private final CheckinMapper checkinMapper;
     private final TrainingMapper trainingMapper;
     private final EnrollmentMapper enrollmentMapper;
+    private final UserMapper userMapper;
 
     /**
      * 签到
      */
     @Transactional
     public Checkin checkin(Long trainingId, Long userId, Double latitude, Double longitude) {
+        // 校验培训是否存在
         Training training = trainingMapper.selectById(trainingId);
-        if (training == null || training.getDeleted() == 1) {
+        if (training == null) {
             throw new RuntimeException("培训不存在");
+        }
+
+        // 校验用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
         }
 
         if (training.getNeedSignup() != null && training.getNeedSignup()) {
@@ -60,7 +70,6 @@ public class CheckinService {
             existing.setTrainingId(trainingId);
             existing.setUserId(userId);
             existing.setCreatedAt(now);
-            existing.setDeleted(0);
             checkinMapper.insert(existing);
         }
 
@@ -78,9 +87,16 @@ public class CheckinService {
      */
     @Transactional
     public Checkin checkout(Long trainingId, Long userId) {
+        // 校验培训是否存在
         Training training = trainingMapper.selectById(trainingId);
-        if (training == null || training.getDeleted() == 1) {
+        if (training == null) {
             throw new RuntimeException("培训不存在");
+        }
+
+        // 校验用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
         }
 
         if (training.getNeedCheckout() == null || !training.getNeedCheckout()) {

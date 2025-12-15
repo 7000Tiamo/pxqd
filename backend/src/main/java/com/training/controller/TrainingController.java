@@ -7,7 +7,7 @@ import com.training.dto.TrainingDetailVO;
 import com.training.dto.TrainingUpdateDTO;
 import com.training.entity.Training;
 import com.training.service.TrainingService;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

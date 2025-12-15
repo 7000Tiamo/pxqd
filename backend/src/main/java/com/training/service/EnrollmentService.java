@@ -2,8 +2,10 @@ package com.training.service;
 
 import com.training.entity.Enrollment;
 import com.training.entity.Training;
+import com.training.entity.User;
 import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
+import com.training.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,15 +19,23 @@ public class EnrollmentService {
 
     private final EnrollmentMapper enrollmentMapper;
     private final TrainingMapper trainingMapper;
+    private final UserMapper userMapper;
 
     /**
      * 报名培训
      */
     @Transactional
     public boolean enroll(Long trainingId, Long userId) {
+        // 校验培训是否存在
         Training training = trainingMapper.selectById(trainingId);
-        if (training == null || training.getDeleted() == 1) {
+        if (training == null) {
             throw new RuntimeException("培训不存在");
+        }
+
+        // 校验用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
         }
 
         if (training.getNeedSignup() == null || !training.getNeedSignup()) {
@@ -50,7 +60,6 @@ public class EnrollmentService {
         enrollment.setStatus("enrolled");
         enrollment.setEnrolledAt(LocalDateTime.now());
         enrollment.setCreatedAt(LocalDateTime.now());
-        enrollment.setDeleted(0);
 
         return enrollmentMapper.insert(enrollment) > 0;
     }
@@ -60,6 +69,18 @@ public class EnrollmentService {
      */
     @Transactional
     public boolean cancelEnrollment(Long trainingId, Long userId) {
+        // 校验培训是否存在
+        Training training = trainingMapper.selectById(trainingId);
+        if (training == null) {
+            throw new RuntimeException("培训不存在");
+        }
+
+        // 校验用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
         Enrollment enrollment = enrollmentMapper.selectByTrainingAndUser(trainingId, userId);
         if (enrollment == null) {
             throw new RuntimeException("未找到报名记录");

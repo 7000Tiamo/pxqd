@@ -76,8 +76,6 @@ public class StatsService {
                 List<Map<String, Object>> result = new ArrayList<>();
 
                 for (Training training : trainings) {
-                        if (training.getDeleted() == 1)
-                                continue;
 
                         Map<String, Object> item = new HashMap<>();
                         item.put("trainingId", training.getId());
@@ -114,7 +112,7 @@ public class StatsService {
         public List<Map<String, Object>> getStatsByDepartment() {
                 List<User> users = userMapper.selectAll();
                 Map<String, List<User>> deptMap = users.stream()
-                                .filter(u -> u.getDept() != null && u.getDeleted() == 0)
+                                .filter(u -> u.getDept() != null)
                                 .collect(Collectors.groupingBy(User::getDept));
 
                 List<Map<String, Object>> result = new ArrayList<>();
@@ -161,8 +159,6 @@ public class StatsService {
                 List<Map<String, Object>> result = new ArrayList<>();
 
                 for (User user : users) {
-                        if (user.getDeleted() == 1)
-                                continue;
 
                         Map<String, Object> item = new HashMap<>();
                         item.put("userId", user.getId());

@@ -26,6 +26,7 @@
       </el-form>
       
       <el-table :data="tableData" v-loading="loading" border>
+        <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="name" label="姓名" width="120" />
         <el-table-column prop="employeeNo" label="工号" width="120" />
         <el-table-column prop="dept" label="部门" width="150" />
@@ -77,6 +78,9 @@
         :rules="rules"
         label-width="80px"
       >
+        <el-form-item label="用户名" prop="username" v-if="!form.id">
+          <el-input v-model="form.username" placeholder="请输入用户名" />
+        </el-form-item>
         <el-form-item label="姓名" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
@@ -154,6 +158,7 @@ const pagination = reactive({
 
 const form = reactive({
   id: null,
+  username: '',
   name: '',
   employeeNo: '',
   dept: '',
@@ -164,6 +169,7 @@ const form = reactive({
 const formRef = ref()
 
 const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   employeeNo: [{ required: true, message: '请输入工号', trigger: 'blur' }]
 }
@@ -245,6 +251,7 @@ const handleSubmit = async () => {
           ElMessage.success('更新成功')
         } else {
           await createUser({
+            username: form.username,
             name: form.name,
             employeeNo: form.employeeNo,
             dept: form.dept,
@@ -264,6 +271,7 @@ const handleSubmit = async () => {
 const resetForm = () => {
   Object.assign(form, {
     id: null,
+    username: '',
     name: '',
     employeeNo: '',
     dept: '',
