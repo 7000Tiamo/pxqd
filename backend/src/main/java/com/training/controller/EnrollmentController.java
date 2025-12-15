@@ -1,122 +1,67 @@
 package com.training.controller;
 
-import com.training.common.api.ApiResponse;
-import com.training.dto.EnrollmentVO;
+import com.training.common.api.Result;
+import com.training.dto.EnrollmentDTO;
 import com.training.entity.Enrollment;
-import com.training.entity.User;
-import com.training.mapper.UserMapper;
-import com.training.service.CheckinService;
 import com.training.service.EnrollmentService;
+import com.training.vo.EnrollmentVO;
+import java.util.List;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/enrollments")
 @RequiredArgsConstructor
 public class EnrollmentController {
-    
+
     private final EnrollmentService enrollmentService;
-    private final UserMapper userMapper;
-    private final CheckinService checkinService;
-    
+
     /**
      * 报名培训
      */
     @PostMapping
-    public ApiResponse<Boolean> enroll(@RequestBody Map<String, Long> request) {
-        Long trainingId = request.get("trainingId");
-        Long userId = request.get("userId");
-        
-        if (trainingId == null || userId == null) {
-            return ApiResponse.error("参数错误");
-        }
-        
-        try {
-            boolean result = enrollmentService.enroll(trainingId, userId);
-            return result ? ApiResponse.success(true) : ApiResponse.error("报名失败");
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+    public Result<Boolean> enroll(@Valid @RequestBody EnrollmentDTO request) {
+        boolean result = enrollmentService.enroll(request.getTrainingId(), request.getUserId());
+        return result ? Result.success(true) : Result.error("报名失败");
     }
-    
+
     /**
      * 取消报名
      */
     @PostMapping("/cancel")
-    public ApiResponse<Boolean> cancelEnrollment(@RequestBody Map<String, Long> request) {
-        Long trainingId = request.get("trainingId");
-        Long userId = request.get("userId");
-        
-        if (trainingId == null || userId == null) {
-            return ApiResponse.error("参数错误");
-        }
-        
-        try {
-            boolean result = enrollmentService.cancelEnrollment(trainingId, userId);
-            return result ? ApiResponse.success(true) : ApiResponse.error("取消失败");
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+    public Result<Boolean> cancelEnrollment(@Valid @RequestBody EnrollmentDTO request) {
+        boolean result = enrollmentService.cancelEnrollment(request.getTrainingId(), request.getUserId());
+        return result ? Result.success(true) : Result.error("取消失败");
     }
-    
+
     /**
      * 获取用户的报名列表
      */
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<Enrollment>> getUserEnrollments(@PathVariable Long userId) {
+    public Result<List<Enrollment>> getUserEnrollments(@PathVariable Long userId) {
         List<Enrollment> list = enrollmentService.getUserEnrollments(userId);
-        return ApiResponse.success(list);
+        return Result.success(list);
     }
-    
+
     /**
      * 获取培训的报名列表
      */
     @GetMapping("/training/{trainingId}")
-    public ApiResponse<List<EnrollmentVO>> getTrainingEnrollments(@PathVariable Long trainingId) {
-        List<Enrollment> enrollments = enrollmentService.getTrainingEnrollments(trainingId);
-        List<EnrollmentVO> voList = enrollments.stream().map(enrollment -> {
-            EnrollmentVO vo = new EnrollmentVO();
-            vo.setId(enrollment.getId());
-            vo.setTrainingId(enrollment.getTrainingId());
-            vo.setUserId(enrollment.getUserId());
-            vo.setStatus(enrollment.getStatus());
-            vo.setEnrolledAt(enrollment.getEnrolledAt());
-            
-            // 获取用户信息
-            User user = userMapper.selectById(enrollment.getUserId());
-            if (user != null) {
-                vo.setUserName(user.getName());
-                vo.setUserDept(user.getDept());
-            }
-            
-            // 获取签到信息
-            List<com.training.entity.Checkin> checkins = checkinService.getTrainingCheckins(trainingId);
-            checkins.stream()
-                    .filter(c -> c.getUserId().equals(enrollment.getUserId()))
-                    .findFirst()
-                    .ifPresent(checkin -> {
-                        vo.setCheckinTime(checkin.getCheckinTime());
-                        vo.setIsLate(checkin.getIsLate());
-                    });
-            
-            return vo;
-        }).collect(Collectors.toList());
-        return ApiResponse.success(voList);
+    public Result<List<EnrollmentVO>> getTrainingEnrollments(@PathVariable Long trainingId) {
+        List<EnrollmentVO> voList = enrollmentService.getTrainingEnrollmentVOs(trainingId);
+        return Result.success(voList);
     }
-    
+
     /**
      * 检查是否已报名
      */
     @GetMapping("/check")
-    public ApiResponse<Boolean> checkEnrollment(
+    public Result<Boolean> checkEnrollment(
             @RequestParam Long trainingId,
             @RequestParam Long userId) {
         boolean enrolled = enrollmentService.isEnrolled(trainingId, userId);
-        return ApiResponse.success(enrolled);
+        return Result.success(enrolled);
     }
 }
 

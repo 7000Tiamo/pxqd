@@ -26,13 +26,13 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     const res = response.data
-    
+
     if (res.code === 0) {
       return res
-    } else {
-      ElMessage.error(res.message || '请求失败')
-      return Promise.reject(new Error(res.message || '请求失败'))
     }
+
+    // 业务错误交由调用方自行提示，避免重复弹窗
+    return Promise.reject(new Error(res.message || '请求失败'))
   },
   error => {
     if (error.response) {

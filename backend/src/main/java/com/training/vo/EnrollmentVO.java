@@ -1,8 +1,7 @@
-package com.training.dto;
-
-import lombok.Data;
+package com.training.vo;
 
 import java.time.LocalDateTime;
+import lombok.Data;
 
 @Data
 public class EnrollmentVO {
