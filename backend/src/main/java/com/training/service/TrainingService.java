@@ -223,22 +223,28 @@ public class TrainingService {
 
     /**
      * 自动更新培训状态（定时任务调用）
+     * 只更新已发布（open）和进行中（ongoing）状态的培训
+     * 草稿（draft）状态由管理员手动管理，不自动更新
      */
     @Transactional
     public void updateTrainingStatus() {
         LocalDateTime now = LocalDateTime.now();
+        // 只查询已发布（报名中）和进行中的培训
         List<Training> trainings = trainingMapper.selectByStatus("open");
         trainings.addAll(trainingMapper.selectByStatus("ongoing"));
 
         for (Training training : trainings) {
             if (training.getStartTime() != null && training.getEndTime() != null) {
+                // 如果当前时间在开始时间和结束时间之间，且状态不是"进行中"，则更新为"进行中"
                 if (now.isAfter(training.getStartTime()) && now.isBefore(training.getEndTime())) {
                     if (!"ongoing".equals(training.getStatus())) {
                         training.setStatus("ongoing");
                         training.setUpdatedAt(now);
                         trainingMapper.updateById(training);
                     }
-                } else if (now.isAfter(training.getEndTime())) {
+                } 
+                // 如果当前时间已超过结束时间，且状态不是"已结束"，则更新为"已结束"
+                else if (now.isAfter(training.getEndTime())) {
                     if (!"ended".equals(training.getStatus())) {
                         training.setStatus("ended");
                         training.setUpdatedAt(now);
