@@ -26,7 +26,17 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtAuthInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/auth/login", "/auth/ping", "/api/auth/login", "/api/auth/ping");
+                // 公开接口不需要登录
+                .excludePathPatterns(
+                        "/auth/login",
+                        "/auth/ping",
+                        "/api/auth/login",
+                        "/api/auth/ping",
+                        "/qrcode",
+                        "/api/qrcode",
+                        "/checkins/public",
+                        "/api/checkins/public"
+                );
     }
 }
 

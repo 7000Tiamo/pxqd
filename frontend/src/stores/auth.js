@@ -5,27 +5,41 @@ import { ElMessage } from 'element-plus'
 import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('token') || '')
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
+  // 优先从localStorage读取，如果没有则从sessionStorage读取
+  const token = ref(localStorage.getItem('token') || sessionStorage.getItem('token') || '')
+  const userStr = localStorage.getItem('user') || sessionStorage.getItem('user') || 'null'
+  const user = ref(JSON.parse(userStr))
   
-  const setToken = (newToken) => {
+  const setToken = (newToken, rememberMe = true) => {
     token.value = newToken
-    localStorage.setItem('token', newToken)
+    if (rememberMe) {
+      localStorage.setItem('token', newToken)
+      sessionStorage.removeItem('token')
+    } else {
+      sessionStorage.setItem('token', newToken)
+      localStorage.removeItem('token')
+    }
   }
   
-  const setUser = (userData) => {
+  const setUser = (userData, rememberMe = true) => {
     user.value = userData
-    localStorage.setItem('user', JSON.stringify(userData))
+    if (rememberMe) {
+      localStorage.setItem('user', JSON.stringify(userData))
+      sessionStorage.removeItem('user')
+    } else {
+      sessionStorage.setItem('user', JSON.stringify(userData))
+      localStorage.removeItem('user')
+    }
   }
   
-  const loginAction = async (username, password) => {
+  const loginAction = async (username, password, rememberMe = true) => {
     try {
       const res = await login(username, password)
-      setToken(res.data.token)
+      setToken(res.data.token, rememberMe)
       
       // 获取用户信息
       const userRes = await getCurrentUser()
-      setUser(userRes.data)
+      setUser(userRes.data, rememberMe)
       
       ElMessage.success('登录成功')
       router.push('/home')
@@ -41,6 +55,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
     router.push('/login')
   }
   

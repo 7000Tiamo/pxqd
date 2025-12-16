@@ -37,4 +37,13 @@ export const getCheckinStats = (trainingId) => {
   })
 }
 
+// 公开扫码签到（通过用户名和工号）
+export const publicCheckin = (trainingId, username, employeeNo) => {
+  return request({
+    url: '/checkins/public',
+    method: 'post',
+    data: { trainingId, username, employeeNo }
+  })
+}
+
 

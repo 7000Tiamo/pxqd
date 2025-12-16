@@ -166,8 +166,8 @@ const handleSave = async () => {
       try {
         const data = {
           ...form,
-          startTime: form.startTime ? new Date(form.startTime).toISOString() : null,
-          endTime: form.endTime ? new Date(form.endTime).toISOString() : null
+          startTime: form.startTime || null,
+          endTime: form.endTime || null
         }
 
         if (isEdit.value) {
@@ -196,8 +196,8 @@ const handlePublish = async () => {
       try {
         const data = {
           ...form,
-          startTime: form.startTime ? new Date(form.startTime).toISOString() : null,
-          endTime: form.endTime ? new Date(form.endTime).toISOString() : null
+          startTime: form.startTime || null,
+          endTime: form.endTime || null
         }
 
         if (isEdit.value) {

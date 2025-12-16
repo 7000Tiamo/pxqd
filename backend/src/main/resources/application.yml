@@ -35,3 +35,8 @@ jwt:
 file:
   upload-path: ./uploads
   qrcode-path: ./qrcodes
+
+# 前端域名配置（用于生成二维码链接）
+app:
+  frontend:
+    domain: http://172.25.8.77:3000

@@ -78,6 +78,31 @@
         </el-row>
       </el-col>
     </el-row>
+
+    <el-dialog
+      v-model="qrDialogVisible"
+      title="签到二维码"
+      width="420px"
+      @close="handleQrClose"
+    >
+      <div class="qr-wrap" v-if="qrCodeUrl">
+        <img :src="qrCodeUrl" alt="签到二维码" class="qr-image" />
+        <p class="qr-desc">手机扫码打开签到页面，输入用户名即可签到</p>
+        <el-input
+          v-model="qrTargetUrl"
+          readonly
+          class="mt-10"
+        >
+          <template #append>
+            <el-button @click="copyLink">复制链接</el-button>
+          </template>
+        </el-input>
+      </div>
+      <div v-else class="qr-loading">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>二维码生成中...</span>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -89,6 +114,7 @@ import { getTrainingDetail } from '@/api/training'
 import { getTrainingEnrollments } from '@/api/enrollment'
 import { getCheckinStats } from '@/api/checkin'
 import { ElMessage } from 'element-plus'
+import { Loading, CopyDocument } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
 const route = useRoute()
@@ -99,6 +125,10 @@ const loading = ref(false)
 const training = ref(null)
 const enrollmentList = ref([])
 const statsCards = ref([])
+const qrDialogVisible = ref(false)
+const qrCodeUrl = ref('')
+const qrTargetUrl = ref('')
+let qrBlobUrl = ''
 
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 
@@ -155,7 +185,28 @@ const loadData = async () => {
 }
 
 const generateQRCode = () => {
-  ElMessage.info('二维码生成功能开发中')
+  if (!route.params.id) return
+  qrDialogVisible.value = true
+  qrCodeUrl.value = ''
+  const origin = import.meta.env.VITE_FRONTEND_DOMAIN || window.location.origin
+  qrTargetUrl.value = `${origin}/checkin?training_id=${route.params.id}`
+  
+
+  // 获取后端生成的二维码图片（PNG）
+  fetch(`/api/qrcode?trainingId=${route.params.id}`)
+    .then(async (res) => {
+      if (!res.ok) {
+        throw new Error('二维码生成失败')
+      }
+      const blob = await res.blob()
+      if (qrBlobUrl) URL.revokeObjectURL(qrBlobUrl)
+      qrBlobUrl = URL.createObjectURL(blob)
+      qrCodeUrl.value = qrBlobUrl
+    })
+    .catch(() => {
+      ElMessage.error('二维码生成失败，请稍后重试')
+      qrDialogVisible.value = false
+    })
 }
 
 const editTraining = () => {
@@ -164,6 +215,24 @@ const editTraining = () => {
 
 const publishNotice = () => {
   ElMessage.info('公告发布功能开发中')
+}
+
+const copyLink = async () => {
+  if (!qrTargetUrl.value) return
+  try {
+    await navigator.clipboard.writeText(qrTargetUrl.value)
+    ElMessage.success('链接已复制')
+  } catch (error) {
+    ElMessage.error('复制失败，请手动复制')
+  }
+}
+
+const handleQrClose = () => {
+  if (qrBlobUrl) {
+    URL.revokeObjectURL(qrBlobUrl)
+    qrBlobUrl = ''
+  }
+  qrCodeUrl.value = ''
 }
 
 onMounted(() => {
@@ -255,6 +324,38 @@ onMounted(() => {
 .stat-label {
   font-size: 14px;
   color: #909399;
+}
+
+.qr-wrap {
+  text-align: center;
+}
+
+.qr-image {
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
+.qr-desc {
+  margin: 10px 0 6px;
+  color: #606266;
+}
+
+.qr-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #606266;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.mt-10 {
+  margin-top: 10px;
 }
 </style>
 

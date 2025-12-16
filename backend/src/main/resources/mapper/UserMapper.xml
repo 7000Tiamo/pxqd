@@ -44,6 +44,10 @@
         SELECT * FROM users WHERE employee_no = #{employeeNo}
     </select>
     
+    <select id="selectByUsernameAndEmployeeNo" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE username = #{username} AND employee_no = #{employeeNo}
+    </select>
+    
     <select id="countByEmployeeNo" resultType="int">
         SELECT COUNT(*) FROM users 
         WHERE employee_no = #{employeeNo}

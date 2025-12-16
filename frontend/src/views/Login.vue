@@ -27,6 +27,9 @@
           />
         </el-form-item>
         <el-form-item>
+          <el-checkbox v-model="loginForm.rememberMe">记住我</el-checkbox>
+        </el-form-item>
+        <el-form-item>
           <el-button
             type="primary"
             size="large"
@@ -38,10 +41,6 @@
           </el-button>
         </el-form-item>
       </el-form>
-      <div class="tips">
-        <p>管理员账号: admin / 密码: 123456</p>
-        <p>员工账号: emp001 / 密码: 123456</p>
-      </div>
     </div>
   </div>
 </template>
@@ -55,8 +54,9 @@ const loginFormRef = ref()
 const loading = ref(false)
 
 const loginForm = reactive({
-  username: 'admin',
-  password: '123456'
+  username: '',
+  password: '',
+  rememberMe: false
 })
 
 const rules = {
@@ -70,7 +70,7 @@ const handleLogin = async () => {
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true
-      await authStore.loginAction(loginForm.username, loginForm.password)
+      await authStore.loginAction(loginForm.username, loginForm.password, loginForm.rememberMe)
       loading.value = false
     }
   })
@@ -109,15 +109,8 @@ const handleLogin = async () => {
   width: 100%;
 }
 
-.tips {
-  margin-top: 20px;
-  text-align: center;
-  color: #909399;
-  font-size: 12px;
-}
-
-.tips p {
-  margin: 5px 0;
+:deep(.el-checkbox) {
+  width: 100%;
 }
 </style>
 

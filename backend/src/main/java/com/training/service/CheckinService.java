@@ -12,7 +12,6 @@ import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
 import com.training.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -182,13 +181,17 @@ public class CheckinService {
 
 
     /**
-     * 通过工号进行公开签到
+     * 通过用户名和工号进行公开签到
      */
-    public Checkin publicCheckinByUserName(Long trainingId, String name) {
-        // 1. 根据工号查用户
-        User user = userMapper.selectByUsername(name);
+    public Checkin publicCheckinByUsernameAndEmployeeNo(Long trainingId, String username, String employeeNo) {
+        // 1. 根据用户名和工号一起查用户
+        User user = userMapper.selectByUsernameAndEmployeeNo(username, employeeNo);
+        
+        if (user == null) {
+            throw new BizException(ErrorCode.NOT_FOUND, "未找到匹配的用户，请检查用户名和工号是否正确");
+        }
 
-        // 2. 复用你已有的签到逻辑（传 userId）
+        // 2. 复用已有的签到逻辑（传 userId）
         return checkin(trainingId, user.getId(), null, null); // latitude/longitude 暂不传
     }
 

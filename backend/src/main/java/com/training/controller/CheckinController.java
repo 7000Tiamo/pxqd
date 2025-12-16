@@ -3,10 +3,10 @@ package com.training.controller;
 import com.training.common.api.Result;
 import com.training.dto.CheckinDTO;
 import com.training.dto.CheckoutDTO;
+import com.training.dto.PublicCheckinDTO;
 import com.training.entity.Checkin;
 import com.training.service.CheckinService;
 import java.util.List;
-import java.util.Map;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -70,30 +70,15 @@ public class CheckinController {
 
 
     /**
-     * 公开扫码签到（通过手机号或工号）
+     * 公开扫码签到（通过用户名和工号）
      */
     @PostMapping("/public")
-    public Result<Checkin> publicCheckin(@RequestBody Map<String, String> request) {
-        String trainingIdStr = request.get("trainingId");
-        String identifier = request.get("username"); // 工号
-
-        if (trainingIdStr == null || identifier == null || identifier.trim().isEmpty()) {
-            return Result.error("username");
-        }
-
-        Long trainingId;
-        try {
-            trainingId = Long.valueOf(trainingIdStr);
-        } catch (NumberFormatException e) {
-            return Result.error("无效的培训ID");
-        }
-
-        try {
-            Checkin checkin = checkinService.publicCheckinByUserName(trainingId, identifier);
-            return Result.success(checkin);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+    public Result<Checkin> publicCheckin(@Valid @RequestBody PublicCheckinDTO publicCheckinDTO) {
+        Checkin checkin = checkinService.publicCheckinByUsernameAndEmployeeNo(
+                publicCheckinDTO.getTrainingId(),
+                publicCheckinDTO.getUsername().trim(),
+                publicCheckinDTO.getEmployeeNo().trim());
+        return Result.success(checkin);
     }
 }
 
