@@ -13,6 +13,8 @@ public class EnrollmentVO {
     private String status;
     private LocalDateTime enrolledAt;
     private LocalDateTime checkinTime;
+    private LocalDateTime checkoutTime;
     private Boolean isLate;
+    private Boolean isEarlyLeave;
 }
 

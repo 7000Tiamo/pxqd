@@ -7,6 +7,7 @@ import com.training.dto.TrainingUpdateDTO;
 import com.training.entity.Training;
 import com.training.service.TrainingService;
 import com.training.vo.TrainingDetailVO;
+import com.training.vo.TrainingListVO;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -53,12 +54,12 @@ public class TrainingController {
      * 分页查询培训列表
      */
     @GetMapping
-    public Result<PageResult<Training>> getTrainingList(
+    public Result<PageResult<TrainingListVO>> getTrainingList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status) {
-        PageResult<Training> result = trainingService.getTrainingPage(page, size, keyword, status);
+        PageResult<TrainingListVO> result = trainingService.getTrainingPage(page, size, keyword, status);
         return Result.success(result);
     }
 
@@ -69,6 +70,19 @@ public class TrainingController {
     public Result<TrainingDetailVO> getTrainingDetail(@PathVariable Long id) {
         TrainingDetailVO vo = trainingService.getTrainingDetail(id);
         return vo != null ? Result.success(vo) : Result.error("培训不存在");
+    }
+
+    /**
+     * 公开获取培训基本信息（用于扫码签到/签退页面）
+     */
+    @GetMapping("/public/{id}")
+    public Result<Training> getPublicTrainingInfo(@PathVariable Long id) {
+        Training training = trainingService.getById(id);
+        if (training == null) {
+            return Result.error("培训不存在");
+        }
+        // 只返回基本信息，不包含统计信息
+        return Result.success(training);
     }
 
     /**

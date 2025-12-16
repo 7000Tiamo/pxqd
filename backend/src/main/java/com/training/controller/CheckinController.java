@@ -4,6 +4,7 @@ import com.training.common.api.Result;
 import com.training.dto.CheckinDTO;
 import com.training.dto.CheckoutDTO;
 import com.training.dto.PublicCheckinDTO;
+import com.training.dto.PublicCheckoutDTO;
 import com.training.entity.Checkin;
 import com.training.service.CheckinService;
 import java.util.List;
@@ -78,6 +79,18 @@ public class CheckinController {
                 publicCheckinDTO.getTrainingId(),
                 publicCheckinDTO.getUsername().trim(),
                 publicCheckinDTO.getEmployeeNo().trim());
+        return Result.success(checkin);
+    }
+
+    /**
+     * 公开扫码签退（通过用户名和工号）
+     */
+    @PostMapping("/public/checkout")
+    public Result<Checkin> publicCheckout(@Valid @RequestBody PublicCheckoutDTO publicCheckoutDTO) {
+        Checkin checkin = checkinService.publicCheckoutByUsernameAndEmployeeNo(
+                publicCheckoutDTO.getTrainingId(),
+                publicCheckoutDTO.getUsername().trim(),
+                publicCheckoutDTO.getEmployeeNo().trim());
         return Result.success(checkin);
     }
 }

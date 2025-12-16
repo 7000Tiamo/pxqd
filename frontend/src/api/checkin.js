@@ -46,4 +46,13 @@ export const publicCheckin = (trainingId, username, employeeNo) => {
   })
 }
 
+// 公开扫码签退（通过用户名和工号）
+export const publicCheckout = (trainingId, username, employeeNo) => {
+  return request({
+    url: '/checkins/public/checkout',
+    method: 'post',
+    data: { trainingId, username, employeeNo }
+  })
+}
+
 

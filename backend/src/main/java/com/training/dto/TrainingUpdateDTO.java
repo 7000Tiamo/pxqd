@@ -15,7 +15,6 @@ public class TrainingUpdateDTO {
     private String coverUrl;
     private Boolean needSignup;
     private Boolean needCheckout;
-    private Boolean gpsRequired;
     private Integer lateMinutes;
     private Integer earlyLeaveMinutes;
     private Integer maxParticipants;

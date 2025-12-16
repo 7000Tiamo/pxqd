@@ -1,10 +1,10 @@
 <template>
-  <div class="checkin-page">
-    <div class="checkin-card">
+  <div class="checkout-page">
+    <div class="checkout-card">
       <div class="header">
         <div>
-          <h2>培训签到</h2>
-          <p class="subtitle">扫码后自动带入培训ID，输入用户名和工号即可完成签到</p>
+          <h2>培训签退</h2>
+          <p class="subtitle">扫码后自动带入培训ID，输入用户名和工号即可完成签退</p>
         </div>
         <el-tag :type="trainingId ? 'success' : 'danger'">
           {{ trainingId ? `培训ID：${trainingId}` : '缺少培训ID' }}
@@ -78,23 +78,23 @@
             @click="handleSubmit"
             :disabled="!trainingId"
           >
-            立即签到
+            立即签退
           </el-button>
         </el-form-item>
       </el-form>
 
       <el-result
-        v-if="checkinResult"
+        v-if="checkoutResult"
         icon="success"
-        title="签到成功"
+        title="签退成功"
         sub-title="信息已记录"
         class="result"
       >
         <template #sub-title>
           <div class="result-info">
-            <p>签到时间：{{ formatTime(checkinResult.checkinTime) || '已记录' }}</p>
+            <p>签退时间：{{ formatTime(checkoutResult.checkoutTime) || '已记录' }}</p>
             <p>状态：{{ stateText }}</p>
-            <p v-if="checkinResult.isLate">已标记：迟到</p>
+            <p v-if="checkoutResult.isEarlyLeave">已标记：早退</p>
           </div>
         </template>
       </el-result>
@@ -107,14 +107,14 @@ import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Location, Clock } from '@element-plus/icons-vue'
-import { publicCheckin } from '@/api/checkin'
+import { publicCheckout } from '@/api/checkin'
 import { getPublicTrainingInfo } from '@/api/training'
 import dayjs from 'dayjs'
 
 const route = useRoute()
 const formRef = ref()
 const loading = ref(false)
-const checkinResult = ref(null)
+const checkoutResult = ref(null)
 const trainingInfo = ref(null)
 const loadingTraining = ref(false)
 
@@ -133,10 +133,10 @@ const trainingId = computed(() => {
 })
 
 const stateText = computed(() => {
-  if (!checkinResult.value) return ''
-  if (checkinResult.value.state === 'signed') return '已签到'
-  if (checkinResult.value.state === 'checked_out') return '已签退'
-  return checkinResult.value.state || '已记录'
+  if (!checkoutResult.value) return ''
+  if (checkoutResult.value.state === 'signed') return '已签到'
+  if (checkoutResult.value.state === 'checked_out') return '已签退'
+  return checkoutResult.value.state || '已记录'
 })
 
 const formatTime = (time) => {
@@ -183,11 +183,11 @@ const handleSubmit = async () => {
     if (!valid) return
     loading.value = true
     try {
-      const res = await publicCheckin(trainingId.value, form.username.trim(), form.employeeNo.trim())
-      checkinResult.value = res.data
-      ElMessage.success('签到成功')
+      const res = await publicCheckout(trainingId.value, form.username.trim(), form.employeeNo.trim())
+      checkoutResult.value = res.data
+      ElMessage.success('签退成功')
     } catch (error) {
-      ElMessage.error(error.message || '签到失败，请稍后重试')
+      ElMessage.error(error.message || '签退失败，请稍后重试')
     } finally {
       loading.value = false
     }
@@ -196,7 +196,7 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.checkin-page {
+.checkout-page {
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -205,7 +205,7 @@ const handleSubmit = async () => {
   padding: 24px;
 }
 
-.checkin-card {
+.checkout-card {
   width: 100%;
   max-width: 520px;
   background: #fff;

@@ -21,3 +21,4 @@ public final class ErrorMessages {
     public static final String TRAINING_TIME_NOT_SET = "培训时间未设置";
 }
 
+

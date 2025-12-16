@@ -31,6 +31,13 @@
           
           <div class="training-actions" v-if="isAdmin">
             <el-button type="primary" @click="generateQRCode">生成签到二维码</el-button>
+            <el-button 
+              v-if="training.needCheckout" 
+              type="success" 
+              @click="generateCheckoutQRCode"
+            >
+              生成签退二维码
+            </el-button>
             <el-button @click="editTraining">编辑培训</el-button>
             <el-button @click="publishNotice">发布公告</el-button>
           </div>
@@ -40,25 +47,57 @@
           <template #header>
             <span>学员名单</span>
           </template>
-          <el-table :data="enrollmentList" border>
-            <el-table-column prop="userName" label="姓名" width="120" />
-            <el-table-column prop="userDept" label="部门" width="150" />
-            <el-table-column prop="enrolledAt" label="报名时间" width="180">
+          <el-table :data="enrollmentList" border style="width: 100%">
+            <el-table-column prop="userName" label="姓名" min-width="100" />
+            <el-table-column prop="userDept" label="部门" min-width="130" />
+            <el-table-column prop="enrolledAt" label="报名时间" min-width="150">
               <template #default="{ row }">
                 {{ formatTime(row.enrolledAt) }}
               </template>
             </el-table-column>
-            <el-table-column prop="checkinTime" label="签到时间" width="180">
+            <el-table-column prop="checkinTime" label="签到时间" min-width="150">
               <template #default="{ row }">
                 {{ row.checkinTime ? formatTime(row.checkinTime) : '-' }}
               </template>
             </el-table-column>
-            <el-table-column label="状态" width="100">
+            <el-table-column 
+              v-if="training && training.needCheckout" 
+              prop="checkoutTime" 
+              label="签退时间" 
+              min-width="150"
+            >
               <template #default="{ row }">
-                <el-tag v-if="row.checkinTime" :type="row.isLate ? 'warning' : 'success'">
-                  {{ row.isLate ? '迟到' : '正常' }}
-                </el-tag>
-                <el-tag v-else type="info">未签到</el-tag>
+                {{ row.checkoutTime ? formatTime(row.checkoutTime) : '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="状态" min-width="100">
+              <template #default="{ row }">
+                <template v-if="row.checkinTime">
+                  <span style="display: inline-flex; gap: 4px; flex-wrap: wrap;">
+                    <el-tag 
+                      v-if="row.isLate" 
+                      :type="row.isEarlyLeave ? 'danger' : 'warning'"
+                      size="small"
+                    >
+                      迟到
+                    </el-tag>
+                    <el-tag 
+                      v-if="row.isEarlyLeave" 
+                      type="danger"
+                      size="small"
+                    >
+                      早退
+                    </el-tag>
+                    <el-tag 
+                      v-if="!row.isLate && !row.isEarlyLeave" 
+                      type="success"
+                      size="small"
+                    >
+                      正常
+                    </el-tag>
+                  </span>
+                </template>
+                <el-tag v-else type="info" size="small">未签到</el-tag>
               </template>
             </el-table-column>
           </el-table>
@@ -87,7 +126,7 @@
     >
       <div class="qr-wrap" v-if="qrCodeUrl">
         <img :src="qrCodeUrl" alt="签到二维码" class="qr-image" />
-        <p class="qr-desc">手机扫码打开签到页面，输入用户名即可签到</p>
+        <p class="qr-desc">手机扫码打开签到页面，输入用户名和工号即可签到</p>
         <el-input
           v-model="qrTargetUrl"
           readonly
@@ -95,6 +134,31 @@
         >
           <template #append>
             <el-button @click="copyLink">复制链接</el-button>
+          </template>
+        </el-input>
+      </div>
+      <div v-else class="qr-loading">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>二维码生成中...</span>
+      </div>
+    </el-dialog>
+
+    <el-dialog
+      v-model="checkoutQrDialogVisible"
+      title="签退二维码"
+      width="420px"
+      @close="handleCheckoutQrClose"
+    >
+      <div class="qr-wrap" v-if="checkoutQrCodeUrl">
+        <img :src="checkoutQrCodeUrl" alt="签退二维码" class="qr-image" />
+        <p class="qr-desc">手机扫码打开签退页面，输入用户名和工号即可签退</p>
+        <el-input
+          v-model="checkoutQrTargetUrl"
+          readonly
+          class="mt-10"
+        >
+          <template #append>
+            <el-button @click="copyCheckoutLink">复制链接</el-button>
           </template>
         </el-input>
       </div>
@@ -129,6 +193,11 @@ const qrDialogVisible = ref(false)
 const qrCodeUrl = ref('')
 const qrTargetUrl = ref('')
 let qrBlobUrl = ''
+
+const checkoutQrDialogVisible = ref(false)
+const checkoutQrCodeUrl = ref('')
+const checkoutQrTargetUrl = ref('')
+let checkoutQrBlobUrl = ''
 
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 
@@ -193,9 +262,17 @@ const generateQRCode = () => {
   
 
   // 获取后端生成的二维码图片（PNG）
-  fetch(`/api/qrcode?trainingId=${route.params.id}`)
+  const token = authStore.token
+  fetch(`/api/qrcode?trainingId=${route.params.id}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
     .then(async (res) => {
       if (!res.ok) {
+        if (res.status === 403) {
+          throw new Error('无权限，仅管理员可以生成二维码')
+        }
         throw new Error('二维码生成失败')
       }
       const blob = await res.blob()
@@ -203,9 +280,41 @@ const generateQRCode = () => {
       qrBlobUrl = URL.createObjectURL(blob)
       qrCodeUrl.value = qrBlobUrl
     })
-    .catch(() => {
-      ElMessage.error('二维码生成失败，请稍后重试')
+    .catch((error) => {
+      ElMessage.error(error.message || '二维码生成失败，请稍后重试')
       qrDialogVisible.value = false
+    })
+}
+
+const generateCheckoutQRCode = () => {
+  if (!route.params.id) return
+  checkoutQrDialogVisible.value = true
+  checkoutQrCodeUrl.value = ''
+  const origin = import.meta.env.VITE_FRONTEND_DOMAIN || window.location.origin
+  checkoutQrTargetUrl.value = `${origin}/checkout?training_id=${route.params.id}`
+
+  // 获取后端生成的签退二维码图片（PNG）
+  const token = authStore.token
+  fetch(`/api/qrcode/checkout?trainingId=${route.params.id}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        if (res.status === 403) {
+          throw new Error('无权限，仅管理员可以生成二维码')
+        }
+        throw new Error('二维码生成失败')
+      }
+      const blob = await res.blob()
+      if (checkoutQrBlobUrl) URL.revokeObjectURL(checkoutQrBlobUrl)
+      checkoutQrBlobUrl = URL.createObjectURL(blob)
+      checkoutQrCodeUrl.value = checkoutQrBlobUrl
+    })
+    .catch((error) => {
+      ElMessage.error(error.message || '二维码生成失败，请稍后重试')
+      checkoutQrDialogVisible.value = false
     })
 }
 
@@ -227,12 +336,30 @@ const copyLink = async () => {
   }
 }
 
+const copyCheckoutLink = async () => {
+  if (!checkoutQrTargetUrl.value) return
+  try {
+    await navigator.clipboard.writeText(checkoutQrTargetUrl.value)
+    ElMessage.success('链接已复制')
+  } catch (error) {
+    ElMessage.error('复制失败，请手动复制')
+  }
+}
+
 const handleQrClose = () => {
   if (qrBlobUrl) {
     URL.revokeObjectURL(qrBlobUrl)
     qrBlobUrl = ''
   }
   qrCodeUrl.value = ''
+}
+
+const handleCheckoutQrClose = () => {
+  if (checkoutQrBlobUrl) {
+    URL.revokeObjectURL(checkoutQrBlobUrl)
+    checkoutQrBlobUrl = ''
+  }
+  checkoutQrCodeUrl.value = ''
 }
 
 onMounted(() => {

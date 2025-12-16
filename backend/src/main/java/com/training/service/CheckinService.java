@@ -62,12 +62,6 @@ public class CheckinService {
             isLate = now.isAfter(lateThreshold);
         }
 
-        if (training.getGpsRequired() != null && training.getGpsRequired()) {
-            if (latitude == null || longitude == null) {
-                throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NEED_GPS);
-            }
-        }
-
         if (existing == null) {
             existing = new Checkin();
             existing.setTrainingId(trainingId);
@@ -193,6 +187,21 @@ public class CheckinService {
 
         // 2. 复用已有的签到逻辑（传 userId）
         return checkin(trainingId, user.getId(), null, null); // latitude/longitude 暂不传
+    }
+
+    /**
+     * 通过用户名和工号进行公开签退
+     */
+    public Checkin publicCheckoutByUsernameAndEmployeeNo(Long trainingId, String username, String employeeNo) {
+        // 1. 根据用户名和工号一起查用户
+        User user = userMapper.selectByUsernameAndEmployeeNo(username, employeeNo);
+        
+        if (user == null) {
+            throw new BizException(ErrorCode.NOT_FOUND, "未找到匹配的用户，请检查用户名和工号是否正确");
+        }
+
+        // 2. 复用已有的签退逻辑（传 userId）
+        return checkout(trainingId, user.getId());
     }
 
     public static class CheckinStats {

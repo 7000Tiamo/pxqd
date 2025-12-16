@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class TrainingDetailVO {
+public class TrainingListVO {
     private Long id;
     private String title;
     private String description;
@@ -19,12 +19,10 @@ public class TrainingDetailVO {
     private Integer lateMinutes;
     private Integer earlyLeaveMinutes;
     private Integer maxParticipants;
-
-    // 统计信息
-    private Integer appliedCount; // 已报名人数
-    private Integer signedCount; // 已签到人数
-    private Integer lateCount; // 迟到人数
-    private Integer checkoutCount; // 已签退人数
-    private Double signRate; // 签到率
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    
+    // 报名人数（列表需要）
+    private Integer appliedCount;
 }
 

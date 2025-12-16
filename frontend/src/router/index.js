@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { ElMessage } from 'element-plus'
 
 const routes = [
   {
@@ -12,6 +13,12 @@ const routes = [
     path: '/checkin',
     name: 'PublicCheckin',
     component: () => import('@/views/CheckinPublic.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/checkout',
+    name: 'PublicCheckout',
+    component: () => import('@/views/CheckoutPublic.vue'),
     meta: { requiresAuth: false }
   },
   {

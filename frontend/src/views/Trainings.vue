@@ -11,7 +11,7 @@
           <el-input v-model="searchForm.keyword" placeholder="请输入培训名称" clearable @keyup.enter="loadData" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择" clearable>
+          <el-select v-model="searchForm.status" placeholder="请选择" clearable style="width: 150px;">
             <el-option label="草稿" value="draft" />
             <el-option label="报名中" value="open" />
             <el-option label="进行中" value="ongoing" />
@@ -114,10 +114,7 @@ const loadData = async () => {
       keyword: searchForm.keyword,
       status: searchForm.status
     })
-    tableData.value = res.data.records.map(item => ({
-      ...item,
-      appliedCount: 0 // 需要从详情接口获取
-    }))
+    tableData.value = res.data.records
     pagination.total = res.data.total
   } catch (error) {
     ElMessage.error('加载失败')

@@ -140,7 +140,9 @@ public class EnrollmentService {
                     .findFirst()
                     .ifPresent(checkin -> {
                         vo.setCheckinTime(checkin.getCheckinTime());
+                        vo.setCheckoutTime(checkin.getCheckoutTime());
                         vo.setIsLate(checkin.getIsLate());
+                        vo.setIsEarlyLeave(checkin.getIsEarlyLeave());
                     });
 
             return vo;

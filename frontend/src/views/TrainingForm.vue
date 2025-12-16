@@ -69,11 +69,6 @@
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="GPS限制">
-              <el-switch v-model="form.gpsRequired" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="迟到阈值(分钟)">
               <el-input-number v-model="form.lateMinutes" :min="0" style="width: 100%" />
             </el-form-item>
@@ -119,9 +114,8 @@ const form = reactive({
   maxParticipants: 50,
   needSignup: true,
   needCheckout: false,
-  gpsRequired: false,
-  lateMinutes: 15,
-  earlyLeaveMinutes: 15
+  lateMinutes: 0,
+  earlyLeaveMinutes: 0
 })
 
 const rules = {
@@ -147,7 +141,6 @@ const loadData = async () => {
         maxParticipants: data.maxParticipants || 50,
         needSignup: data.needSignup !== false,
         needCheckout: data.needCheckout === true,
-        gpsRequired: data.gpsRequired === true,
         lateMinutes: data.lateMinutes || 15,
         earlyLeaveMinutes: data.earlyLeaveMinutes || 15
       })

@@ -12,6 +12,7 @@ import com.training.mapper.CheckinMapper;
 import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
 import com.training.vo.TrainingDetailVO;
+import com.training.vo.TrainingListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +46,6 @@ public class TrainingService {
         training.setStatus("draft");
         training.setNeedSignup(dto.getNeedSignup() != null ? dto.getNeedSignup() : true);
         training.setNeedCheckout(dto.getNeedCheckout() != null ? dto.getNeedCheckout() : false);
-        training.setGpsRequired(dto.getGpsRequired() != null ? dto.getGpsRequired() : false);
         training.setLateMinutes(dto.getLateMinutes() != null ? dto.getLateMinutes() : 15);
         training.setEarlyLeaveMinutes(dto.getEarlyLeaveMinutes() != null ? dto.getEarlyLeaveMinutes() : 15);
         training.setMaxParticipants(dto.getMaxParticipants());
@@ -83,8 +84,6 @@ public class TrainingService {
             training.setNeedSignup(dto.getNeedSignup());
         if (dto.getNeedCheckout() != null)
             training.setNeedCheckout(dto.getNeedCheckout());
-        if (dto.getGpsRequired() != null)
-            training.setGpsRequired(dto.getGpsRequired());
         if (dto.getLateMinutes() != null)
             training.setLateMinutes(dto.getLateMinutes());
         if (dto.getEarlyLeaveMinutes() != null)
@@ -120,13 +119,41 @@ public class TrainingService {
     /**
      * 分页查询培训列表
      */
-    public PageResult<Training> getTrainingPage(Integer page, Integer size, String keyword, String status) {
+    public PageResult<TrainingListVO> getTrainingPage(Integer page, Integer size, String keyword, String status) {
         List<Training> all = trainingMapper.selectByCondition(keyword, status);
         long total = all.size();
         int start = (page - 1) * size;
         int end = Math.min(start + size, all.size());
         List<Training> records = start < all.size() ? all.subList(start, end) : Collections.emptyList();
-        return new PageResult<>(records, total, page, size);
+        
+        // 转换为 TrainingListVO 并添加报名人数
+        List<TrainingListVO> voList = records.stream().map(training -> {
+            TrainingListVO vo = new TrainingListVO();
+            vo.setId(training.getId());
+            vo.setTitle(training.getTitle());
+            vo.setDescription(training.getDescription());
+            vo.setTrainer(training.getTrainer());
+            vo.setLocation(training.getLocation());
+            vo.setStartTime(training.getStartTime());
+            vo.setEndTime(training.getEndTime());
+            vo.setCoverUrl(training.getCoverUrl());
+            vo.setStatus(training.getStatus());
+            vo.setNeedSignup(training.getNeedSignup());
+            vo.setNeedCheckout(training.getNeedCheckout());
+            vo.setLateMinutes(training.getLateMinutes());
+            vo.setEarlyLeaveMinutes(training.getEarlyLeaveMinutes());
+            vo.setMaxParticipants(training.getMaxParticipants());
+            vo.setCreatedAt(training.getCreatedAt());
+            vo.setUpdatedAt(training.getUpdatedAt());
+            
+            // 获取报名人数
+            int appliedCount = enrollmentMapper.countByTrainingId(training.getId());
+            vo.setAppliedCount(appliedCount);
+            
+            return vo;
+        }).collect(Collectors.toList());
+        
+        return new PageResult<>(voList, total, page, size);
     }
 
     /**
@@ -150,7 +177,6 @@ public class TrainingService {
         vo.setStatus(training.getStatus());
         vo.setNeedSignup(training.getNeedSignup());
         vo.setNeedCheckout(training.getNeedCheckout());
-        vo.setGpsRequired(training.getGpsRequired());
         vo.setLateMinutes(training.getLateMinutes());
         vo.setEarlyLeaveMinutes(training.getEarlyLeaveMinutes());
         vo.setMaxParticipants(training.getMaxParticipants());

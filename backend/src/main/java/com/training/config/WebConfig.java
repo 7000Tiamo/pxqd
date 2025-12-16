@@ -32,10 +32,12 @@ public class WebConfig implements WebMvcConfigurer {
                         "/auth/ping",
                         "/api/auth/login",
                         "/api/auth/ping",
-                        "/qrcode",
-                        "/api/qrcode",
+                        "/trainings/public/**",
+                        "/api/trainings/public/**",
                         "/checkins/public",
-                        "/api/checkins/public"
+                        "/api/checkins/public",
+                        "/checkins/public/checkout",
+                        "/api/checkins/public/checkout"
                 );
     }
 }

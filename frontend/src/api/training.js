@@ -45,4 +45,12 @@ export const deleteTraining = (id) => {
   })
 }
 
+// 公开获取培训基本信息（用于扫码签到/签退页面）
+export const getPublicTrainingInfo = (id) => {
+  return request({
+    url: `/trainings/public/${id}`,
+    method: 'get'
+  })
+}
+
 

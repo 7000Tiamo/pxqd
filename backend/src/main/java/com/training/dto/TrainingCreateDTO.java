@@ -24,7 +24,6 @@ public class TrainingCreateDTO {
     private String coverUrl;
     private Boolean needSignup = true;
     private Boolean needCheckout = false;
-    private Boolean gpsRequired = false;
     private Integer lateMinutes = 15;
     private Integer earlyLeaveMinutes = 15;
     private Integer maxParticipants; // null表示不限制

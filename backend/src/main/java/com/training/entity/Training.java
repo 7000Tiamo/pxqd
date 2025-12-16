@@ -62,11 +62,6 @@ public class Training {
     private Boolean needCheckout;
 
     /**
-     * 是否需要GPS定位
-     */
-    private Boolean gpsRequired;
-
-    /**
      * 迟到容忍分钟数
      */
     private Integer lateMinutes;

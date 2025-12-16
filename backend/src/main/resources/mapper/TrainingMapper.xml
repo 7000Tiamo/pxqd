@@ -14,7 +14,6 @@
         <result column="status" property="status"/>
         <result column="need_signup" property="needSignup"/>
         <result column="need_checkout" property="needCheckout"/>
-        <result column="gps_required" property="gpsRequired"/>
         <result column="late_minutes" property="lateMinutes"/>
         <result column="early_leave_minutes" property="earlyLeaveMinutes"/>
         <result column="max_participants" property="maxParticipants"/>
@@ -49,10 +48,10 @@
     
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO trainings (title, description, trainer, location, start_time, end_time, cover_url, status,
-            need_signup, need_checkout, gps_required, late_minutes, early_leave_minutes, max_participants,
+            need_signup, need_checkout, late_minutes, early_leave_minutes, max_participants,
             created_at, updated_at)
         VALUES (#{title}, #{description}, #{trainer}, #{location}, #{startTime}, #{endTime}, #{coverUrl}, #{status},
-            #{needSignup}, #{needCheckout}, #{gpsRequired}, #{lateMinutes}, #{earlyLeaveMinutes}, #{maxParticipants},
+            #{needSignup}, #{needCheckout}, #{lateMinutes}, #{earlyLeaveMinutes}, #{maxParticipants},
             #{createdAt}, #{updatedAt})
     </insert>
     
@@ -68,7 +67,6 @@
             status = #{status},
             need_signup = #{needSignup},
             need_checkout = #{needCheckout},
-            gps_required = #{gpsRequired},
             late_minutes = #{lateMinutes},
             early_leave_minutes = #{earlyLeaveMinutes},
             max_participants = #{maxParticipants},
