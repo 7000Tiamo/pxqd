@@ -36,29 +36,22 @@ public class QrCodeController {
     @GetMapping(value = "/qrcode", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> generateCheckinQrCode(
             @RequestParam Long trainingId,
-            HttpServletRequest request) {
-        try {
-            // 检查管理员权限
-            checkAdminPermission(request);
+            HttpServletRequest request) throws Exception {
+        // 检查管理员权限
+        checkAdminPermission(request);
 
-            // 构造签到页面 URL
-            String checkinUrl = frontendDomain + "/checkin?training_id=" + trainingId;
+        // 构造签到页面 URL
+        String checkinUrl = frontendDomain + "/checkin?training_id=" + trainingId;
 
-            // 生成二维码（300x300 像素）
-            byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkinUrl, 300, 300);
+        // 生成二维码（300x300 像素）
+        byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkinUrl, 300, 300);
 
-            // 设置响应头
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.IMAGE_PNG);
-            headers.setContentLength(qrCodeImage.length);
+        // 设置响应头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_PNG);
+        headers.setContentLength(qrCodeImage.length);
 
-            return new ResponseEntity<>(qrCodeImage, headers, HttpStatus.OK);
-        } catch (BizException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return new ResponseEntity<>(qrCodeImage, headers, HttpStatus.OK);
     }
 
     /**
@@ -69,29 +62,22 @@ public class QrCodeController {
     @GetMapping(value = "/qrcode/checkout", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> generateCheckoutQrCode(
             @RequestParam Long trainingId,
-            HttpServletRequest request) {
-        try {
-            // 检查管理员权限
-            checkAdminPermission(request);
+            HttpServletRequest request) throws Exception {
+        // 检查管理员权限
+        checkAdminPermission(request);
 
-            // 构造签退页面 URL
-            String checkoutUrl = frontendDomain + "/checkout?training_id=" + trainingId;
+        // 构造签退页面 URL
+        String checkoutUrl = frontendDomain + "/checkout?training_id=" + trainingId;
 
-            // 生成二维码（300x300 像素）
-            byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkoutUrl, 300, 300);
+        // 生成二维码（300x300 像素）
+        byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkoutUrl, 300, 300);
 
-            // 设置响应头
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.IMAGE_PNG);
-            headers.setContentLength(qrCodeImage.length);
+        // 设置响应头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_PNG);
+        headers.setContentLength(qrCodeImage.length);
 
-            return new ResponseEntity<>(qrCodeImage, headers, HttpStatus.OK);
-        } catch (BizException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return new ResponseEntity<>(qrCodeImage, headers, HttpStatus.OK);
     }
 
     /**

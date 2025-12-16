@@ -11,6 +11,7 @@ import com.training.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -50,7 +51,9 @@ public class UserService {
         user.setPhone(dto.getPhone());
         user.setRole(dto.getRole() != null ? dto.getRole() : "employee");
         user.setStatus(1);
-        user.setPassword("e10adc3949ba59abbe56e057f20f883e");
+        // 使用MD5加密密码
+        String encodedPassword = DigestUtils.md5DigestAsHex(dto.getPassword().getBytes());
+        user.setPassword(encodedPassword);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 

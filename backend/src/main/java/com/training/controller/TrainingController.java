@@ -42,12 +42,8 @@ public class TrainingController {
      */
     @PostMapping("/{id}/publish")
     public Result<Boolean> publishTraining(@PathVariable Long id) {
-        try {
-            boolean result = trainingService.publishTraining(id);
-            return result ? Result.success(true) : Result.error("培训不存在");
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        boolean result = trainingService.publishTraining(id);
+        return result ? Result.success(true) : Result.error("培训不存在");
     }
 
     /**
@@ -90,11 +86,7 @@ public class TrainingController {
      */
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteTraining(@PathVariable Long id) {
-        try {
-            boolean result = trainingService.deleteTraining(id);
-            return result ? Result.success(true) : Result.error("培训不存在");
-        } catch (Exception e) {
-            return Result.error("删除失败: " + e.getMessage());
-        }
+        boolean result = trainingService.deleteTraining(id);
+        return result ? Result.success(true) : Result.error("培训不存在");
     }
 }
