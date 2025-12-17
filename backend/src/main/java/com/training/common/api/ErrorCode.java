@@ -8,7 +8,8 @@ public enum ErrorCode {
     VALIDATE_FAILED(1001, "参数校验失败"),
     BUSINESS_CONFLICT(3001, "业务冲突"),
     NOT_FOUND(3004, "资源不存在"),
-    SERVER_ERROR(1000, "系统异常");
+    SERVER_ERROR(1000, "系统异常"),
+    TOKEN_INVALID(2001,"token已失效");
 
     private final int code;
     private final String message;

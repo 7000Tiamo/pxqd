@@ -2,6 +2,7 @@ package com.training.controller;
 
 import com.training.common.api.BizException;
 import com.training.common.api.ErrorCode;
+import com.training.constants.RedisKeyConstants;
 import com.training.entity.User;
 import com.training.mapper.UserMapper;
 import com.training.service.AuthService;
@@ -9,6 +10,7 @@ import com.training.util.QrCodeUtil;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,16 +19,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 @RestController
 @RequiredArgsConstructor
 public class QrCodeController {
 
     private final UserMapper userMapper;
     private final AuthService authService;
-
+    private final StringRedisTemplate redisTemplate;
     // 从配置文件读取前端域名（推荐）
     @Value("${app.frontend.domain:http://172.25.8.77:3000}")
     private String frontendDomain;
+
 
     /**
      * 生成签到二维码（仅管理员）
@@ -36,12 +42,16 @@ public class QrCodeController {
     @GetMapping(value = "/qrcode", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> generateCheckinQrCode(
             @RequestParam Long trainingId,
+            @RequestParam(defaultValue = "10") Long time,
             HttpServletRequest request) throws Exception {
         // 检查管理员权限
         checkAdminPermission(request);
 
-        // 构造签到页面 URL
-        String checkinUrl = frontendDomain + "/checkin?training_id=" + trainingId;
+        String newtoken = UUID.randomUUID().toString().replace("-","");
+        String redisKey= RedisKeyConstants.QR_CHECKIN_TOKEN_PREFIX+trainingId;
+        redisTemplate.opsForValue().set(redisKey,newtoken,time, TimeUnit.MINUTES);
+        // 构造签到页面   URL
+        String checkinUrl = frontendDomain + "/checkin?token=" + newtoken;
 
         // 生成二维码（300x300 像素）
         byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkinUrl, 300, 300);
@@ -62,12 +72,16 @@ public class QrCodeController {
     @GetMapping(value = "/qrcode/checkout", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> generateCheckoutQrCode(
             @RequestParam Long trainingId,
+            @RequestParam(defaultValue = "10") Long time,
             HttpServletRequest request) throws Exception {
         // 检查管理员权限
         checkAdminPermission(request);
 
-        // 构造签退页面 URL
-        String checkoutUrl = frontendDomain + "/checkout?training_id=" + trainingId;
+        String newtoken = UUID.randomUUID().toString().replace("-","");
+        String redisKey= RedisKeyConstants.QR_CHECKOUT_TOKEN_PREFIX+trainingId;
+        redisTemplate.opsForValue().set(redisKey,newtoken,time, TimeUnit.MINUTES);
+        // 构造签到页面   URL
+        String checkoutUrl = frontendDomain + "/checkout?token=" + newtoken;
 
         // 生成二维码（300x300 像素）
         byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkoutUrl, 300, 300);

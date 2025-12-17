@@ -78,7 +78,8 @@ public class CheckinController {
         Checkin checkin = checkinService.publicCheckinByUsernameAndEmployeeNo(
                 publicCheckinDTO.getTrainingId(),
                 publicCheckinDTO.getUsername().trim(),
-                publicCheckinDTO.getEmployeeNo().trim());
+                publicCheckinDTO.getEmployeeNo().trim(),
+                publicCheckinDTO.getToken());
         return Result.success(checkin);
     }
 
@@ -90,7 +91,8 @@ public class CheckinController {
         Checkin checkin = checkinService.publicCheckoutByUsernameAndEmployeeNo(
                 publicCheckoutDTO.getTrainingId(),
                 publicCheckoutDTO.getUsername().trim(),
-                publicCheckoutDTO.getEmployeeNo().trim());
+                publicCheckoutDTO.getEmployeeNo().trim(),
+                publicCheckoutDTO.getToken());
         return Result.success(checkin);
     }
 }

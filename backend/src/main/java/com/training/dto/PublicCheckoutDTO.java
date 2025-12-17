@@ -18,5 +18,9 @@ public class PublicCheckoutDTO {
 
     @NotBlank(message = "工号不能为空")
     private String employeeNo;
+
+    @NotBlank(message = "token不能为空")
+    private  String token;
+
 }
 

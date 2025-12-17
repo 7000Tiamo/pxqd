@@ -3,6 +3,7 @@ package com.training.service;
 import com.training.common.api.BizException;
 import com.training.common.api.ErrorCode;
    import com.training.common.api.ErrorMessages;
+import com.training.constants.RedisKeyConstants;
 import com.training.entity.Checkin;
 import com.training.entity.Enrollment;
 import com.training.entity.Training;
@@ -12,6 +13,7 @@ import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
 import com.training.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,8 @@ public class CheckinService {
     private final TrainingMapper trainingMapper;
     private final EnrollmentMapper enrollmentMapper;
     private final UserMapper userMapper;
+    private final StringRedisTemplate  redisTemplate;
+
 
     /**
      * 签到
@@ -177,7 +181,10 @@ public class CheckinService {
     /**
      * 通过用户名和工号进行公开签到
      */
-    public Checkin publicCheckinByUsernameAndEmployeeNo(Long trainingId, String username, String employeeNo) {
+    public Checkin publicCheckinByUsernameAndEmployeeNo(Long trainingId, String username, String employeeNo,String token) {
+
+        if(!isValidToken(trainingId,token,RedisKeyConstants.QR_CHECKIN_TOKEN_PREFIX))
+            throw new BizException(ErrorCode.TOKEN_INVALID, "二维码已失效，请重试");
         // 1. 根据用户名和工号一起查用户
         User user = userMapper.selectByUsernameAndEmployeeNo(username, employeeNo);
         
@@ -189,10 +196,20 @@ public class CheckinService {
         return checkin(trainingId, user.getId(), null, null); // latitude/longitude 暂不传
     }
 
+    //判断token是否还在活跃
+    public boolean isValidToken(Long trainingId, String token,String QR_ZT) {
+        if(token==null||trainingId==null) return false ;
+        String redisKey = QR_ZT+trainingId;
+        String activeToken = redisTemplate.opsForValue().get(redisKey);
+        return token.equals(activeToken);
+    }
+
     /**
      * 通过用户名和工号进行公开签退
      */
-    public Checkin publicCheckoutByUsernameAndEmployeeNo(Long trainingId, String username, String employeeNo) {
+    public Checkin publicCheckoutByUsernameAndEmployeeNo(Long trainingId, String username, String employeeNo,String token) {
+        if(!isValidToken(trainingId,token,RedisKeyConstants.QR_CHECKOUT_TOKEN_PREFIX))
+            throw new BizException(ErrorCode.TOKEN_INVALID, "二维码已失效，请重试");
         // 1. 根据用户名和工号一起查用户
         User user = userMapper.selectByUsernameAndEmployeeNo(username, employeeNo);
         
