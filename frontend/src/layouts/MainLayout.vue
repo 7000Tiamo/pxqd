@@ -11,8 +11,9 @@
         class="header-menu"
       >
         <el-menu-item index="/home">首页</el-menu-item>
+        <el-menu-item v-if="!isAdmin" index="/my-trainings">我的培训</el-menu-item>
         <el-menu-item v-if="isAdmin" index="/users">用户管理</el-menu-item>
-        <el-menu-item index="/trainings">培训管理</el-menu-item>
+        <el-menu-item v-if="isAdmin" index="/trainings">培训管理</el-menu-item>
         <el-menu-item v-if="isAdmin" index="/stats">数据统计</el-menu-item>
       </el-menu>
       <div class="header-right">

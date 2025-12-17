@@ -38,4 +38,12 @@ export const getTrainingEnrollments = (trainingId) => {
   })
 }
 
+export const getUserEnrolledTrainings = (userId, status) => {
+  return request({
+    url: `/enrollments/user/${userId}/trainings`,
+    method: 'get',
+    params: status ? { status } : {}
+  })
+}
+
 

@@ -6,7 +6,7 @@
     </div>
     
     <el-row :gutter="20" v-if="training">
-      <el-col :span="16">
+      <el-col :span="isAdmin ? 16 : 24">
         <el-card>
           <div class="training-header">
             <div>
@@ -43,7 +43,7 @@
           </div>
         </el-card>
         
-        <el-card class="mt-20">
+        <el-card class="mt-20" v-if="isAdmin">
           <template #header>
             <span>学员名单</span>
           </template>
@@ -104,7 +104,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="8">
+      <el-col :span="8" v-if="isAdmin">
         <el-row :gutter="10" class="stats-cards">
           <el-col :span="12" v-for="(stat, index) in statsCards" :key="index">
             <el-card class="stat-card">
@@ -229,23 +229,32 @@ const loadData = async () => {
   loading.value = true
   try {
     const id = route.params.id
-    const [trainingRes, enrollmentRes, statsRes] = await Promise.all([
-      getTrainingDetail(id),
-      getTrainingEnrollments(id),
-      getCheckinStats(id)
-    ])
+    const promises = [getTrainingDetail(id)]
     
-    training.value = trainingRes.data
+    // 只有管理员才加载学员名单和统计数据
+    if (isAdmin.value) {
+      promises.push(getTrainingEnrollments(id), getCheckinStats(id))
+    }
     
-    // 更新统计卡片
-    statsCards.value = [
-      { label: '已报名', value: training.value.appliedCount || 0 },
-      { label: '已签到', value: training.value.signedCount || 0 },
-      { label: '迟到', value: training.value.lateCount || 0 },
-      { label: '签到率', value: (training.value.signRate || 0).toFixed(1) + '%' }
-    ]
+    const results = await Promise.all(promises)
+    training.value = results[0].data
     
-    enrollmentList.value = enrollmentRes.data || []
+    // 只有管理员才显示统计卡片和学员名单
+    if (isAdmin.value && results.length > 1) {
+      // 更新统计卡片
+      statsCards.value = [
+        { label: '已报名', value: training.value.appliedCount || 0 },
+        { label: '已签到', value: training.value.signedCount || 0 },
+        { label: '迟到', value: training.value.lateCount || 0 },
+        { label: '签到率', value: (training.value.signRate || 0).toFixed(1) + '%' }
+      ]
+      
+      enrollmentList.value = results[1].data || []
+    } else {
+      // 普通员工只显示基本信息，不显示统计和学员名单
+      statsCards.value = []
+      enrollmentList.value = []
+    }
   } catch (error) {
     ElMessage.error('加载失败')
   } finally {

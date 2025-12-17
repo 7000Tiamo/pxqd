@@ -5,6 +5,7 @@ import com.training.dto.EnrollmentDTO;
 import com.training.entity.Enrollment;
 import com.training.service.EnrollmentService;
 import com.training.vo.EnrollmentVO;
+import com.training.vo.TrainingListVO;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,19 @@ public class EnrollmentController {
             @RequestParam Long userId) {
         boolean enrolled = enrollmentService.isEnrolled(trainingId, userId);
         return Result.success(enrolled);
+    }
+
+    /**
+     * 获取用户已报名的培训列表（包含培训详情）
+     * @param userId 用户ID
+     * @param status 培训状态过滤（可选）：open-报名中，ongoing-进行中，ended-已结束
+     */
+    @GetMapping("/user/{userId}/trainings")
+    public Result<List<TrainingListVO>> getUserEnrolledTrainings(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String status) {
+        List<TrainingListVO> list = enrollmentService.getUserEnrolledTrainings(userId, status);
+        return Result.success(list);
     }
 }
 

@@ -33,6 +33,11 @@ const routes = [
         component: () => import('@/views/Home.vue')
       },
       {
+        path: 'my-trainings',
+        name: 'MyTrainings',
+        component: () => import('@/views/MyTrainings.vue')
+      },
+      {
         path: 'users',
         name: 'Users',
         component: () => import('@/views/Users.vue'),
@@ -41,12 +46,14 @@ const routes = [
       {
         path: 'trainings',
         name: 'Trainings',
-        component: () => import('@/views/Trainings.vue')
+        component: () => import('@/views/Trainings.vue'),
+        meta: { role: 'admin' }
       },
       {
         path: 'trainings/create',
         name: 'TrainingCreate',
-        component: () => import('@/views/TrainingForm.vue')
+        component: () => import('@/views/TrainingForm.vue'),
+        meta: { role: 'admin' }
       },
       {
         path: 'trainings/:id',
@@ -56,7 +63,8 @@ const routes = [
       {
         path: 'trainings/:id/edit',
         name: 'TrainingEdit',
-        component: () => import('@/views/TrainingForm.vue')
+        component: () => import('@/views/TrainingForm.vue'),
+        meta: { role: 'admin' }
       },
       {
         path: 'stats',

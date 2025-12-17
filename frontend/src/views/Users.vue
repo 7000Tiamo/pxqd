@@ -81,6 +81,14 @@
         <el-form-item label="用户名" prop="username" v-if="!form.id">
           <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
+        <el-form-item label="密码" prop="password" v-if="!form.id">
+          <el-input 
+            v-model="form.password" 
+            type="password" 
+            placeholder="请输入密码"
+            show-password
+          />
+        </el-form-item>
         <el-form-item label="姓名" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
@@ -159,6 +167,7 @@ const pagination = reactive({
 const form = reactive({
   id: null,
   username: '',
+  password: '',
   name: '',
   employeeNo: '',
   dept: '',
@@ -170,6 +179,7 @@ const formRef = ref()
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   employeeNo: [{ required: true, message: '请输入工号', trigger: 'blur' }]
 }
@@ -252,6 +262,7 @@ const handleSubmit = async () => {
         } else {
           await createUser({
             username: form.username,
+            password: form.password,
             name: form.name,
             employeeNo: form.employeeNo,
             dept: form.dept,
@@ -272,6 +283,7 @@ const resetForm = () => {
   Object.assign(form, {
     id: null,
     username: '',
+    password: '',
     name: '',
     employeeNo: '',
     dept: '',

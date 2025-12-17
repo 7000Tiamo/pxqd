@@ -12,6 +12,7 @@ import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
 import com.training.mapper.UserMapper;
 import com.training.vo.EnrollmentVO;
+import com.training.vo.TrainingListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -155,5 +156,62 @@ public class EnrollmentService {
     public boolean isEnrolled(Long trainingId, Long userId) {
         Enrollment enrollment = enrollmentMapper.selectByTrainingAndUser(trainingId, userId);
         return enrollment != null;
+    }
+
+    /**
+     * 获取用户已报名的培训列表（包含培训详情）
+     * @param userId 用户ID
+     * @param trainingStatus 培训状态过滤（可选）：open-报名中，ongoing-进行中，ended-已结束
+     * @return 培训列表
+     */
+    public List<TrainingListVO> getUserEnrolledTrainings(Long userId, String trainingStatus) {
+        List<Enrollment> enrollments = enrollmentMapper.selectByUserId(userId);
+        
+        return enrollments.stream()
+                .map(enrollment -> {
+                    Training training = trainingMapper.selectById(enrollment.getTrainingId());
+                    if (training == null) {
+                        return null;
+                    }
+                    
+                    // 如果指定了培训状态过滤，则进行过滤
+                    if (trainingStatus != null && !trainingStatus.isEmpty() 
+                        && !trainingStatus.equals(training.getStatus())) {
+                        return null;
+                    }
+                    
+                    TrainingListVO vo = new TrainingListVO();
+                    vo.setId(training.getId());
+                    vo.setTitle(training.getTitle());
+                    vo.setDescription(training.getDescription());
+                    vo.setTrainer(training.getTrainer());
+                    vo.setLocation(training.getLocation());
+                    vo.setStartTime(training.getStartTime());
+                    vo.setEndTime(training.getEndTime());
+                    vo.setCoverUrl(training.getCoverUrl());
+                    vo.setStatus(training.getStatus());
+                    vo.setNeedSignup(training.getNeedSignup());
+                    vo.setNeedCheckout(training.getNeedCheckout());
+                    vo.setLateMinutes(training.getLateMinutes());
+                    vo.setEarlyLeaveMinutes(training.getEarlyLeaveMinutes());
+                    vo.setMaxParticipants(training.getMaxParticipants());
+                    vo.setCreatedAt(training.getCreatedAt());
+                    vo.setUpdatedAt(training.getUpdatedAt());
+                    
+                    // 获取报名人数
+                    int appliedCount = enrollmentMapper.countByTrainingId(training.getId());
+                    vo.setAppliedCount(appliedCount);
+                    
+                    return vo;
+                })
+                .filter(vo -> vo != null)
+                .sorted((a, b) -> {
+                    // 按开始时间倒序排列
+                    if (a.getStartTime() != null && b.getStartTime() != null) {
+                        return b.getStartTime().compareTo(a.getStartTime());
+                    }
+                    return 0;
+                })
+                .collect(Collectors.toList());
     }
 }
