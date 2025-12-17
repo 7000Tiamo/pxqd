@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(16) NOT NULL DEFAULT 'employee',
     status INT NOT NULL DEFAULT 1,
     password VARCHAR(128) NOT NULL,
+    avatar VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -26,6 +27,7 @@ COMMENT ON COLUMN users.phone IS '手机号';
 COMMENT ON COLUMN users.role IS '角色：admin-管理员，employee-员工';
 COMMENT ON COLUMN users.status IS '状态：1-启用，0-禁用';
 COMMENT ON COLUMN users.password IS '密码（MD5加密）';
+COMMENT ON COLUMN users.avatar IS '头像URL';
 COMMENT ON COLUMN users.created_at IS '创建时间';
 COMMENT ON COLUMN users.updated_at IS '更新时间';
 

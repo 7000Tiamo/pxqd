@@ -1,5 +1,6 @@
 package com.training.controller;
 
+import com.thunisoft.cloud.storage.client.core.store.IStoreService;
 import com.training.common.api.Result;
 import com.training.dto.LoginRequest;
 import com.training.dto.TokenResponse;
@@ -8,6 +9,8 @@ import com.training.mapper.UserMapper;
 import com.training.service.AuthService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +19,8 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserMapper userMapper;
+    @Autowired
+    private IStoreService storeService;
 
     public AuthController(AuthService authService, UserMapper userMapper) {
         this.authService = authService;
@@ -40,6 +45,9 @@ public class AuthController {
         User user = userMapper.selectById(userId);
         if (user == null) {
             return Result.error("用户不存在");
+        }
+        if (user.getAvatar() != null){
+            user.setAvatar(storeService.preGetObjectUrl(user.getAvatar()));
         }
         // 不返回密码
         user.setPassword(null);

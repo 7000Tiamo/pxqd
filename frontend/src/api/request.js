@@ -25,6 +25,25 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
+    // 如果是blob类型响应（文件下载），直接返回blob数据
+    if (response.config.responseType === 'blob' || response.data instanceof Blob) {
+      // 检查Content-Type，如果是JSON格式的blob，说明是错误响应
+      const contentType = response.headers['content-type'] || response.headers['Content-Type'] || ''
+      if (contentType.includes('application/json')) {
+        // 错误响应，需要解析JSON
+        return response.data.text().then(text => {
+          try {
+            const errorData = JSON.parse(text)
+            return Promise.reject(new Error(errorData.message || '请求失败'))
+          } catch (e) {
+            return Promise.reject(new Error('请求失败'))
+          }
+        })
+      }
+      // 正常文件响应，直接返回blob
+      return response.data
+    }
+
     const res = response.data
 
     if (res.code === 0) {
@@ -35,6 +54,22 @@ service.interceptors.response.use(
     return Promise.reject(new Error(res.message || '请求失败'))
   },
   error => {
+    // 处理blob类型的错误响应
+    if (error.response && error.response.data instanceof Blob) {
+      const contentType = error.response.headers['content-type'] || error.response.headers['Content-Type'] || ''
+      if (contentType.includes('application/json')) {
+        error.response.data.text().then(text => {
+          try {
+            const errorData = JSON.parse(text)
+            ElMessage.error(errorData.message || '请求失败')
+          } catch (e) {
+            ElMessage.error('请求失败')
+          }
+        })
+        return Promise.reject(error)
+      }
+    }
+
     if (error.response) {
       const { status } = error.response
       

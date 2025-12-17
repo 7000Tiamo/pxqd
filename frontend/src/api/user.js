@@ -8,19 +8,62 @@ export const getUserList = (params) => {
   })
 }
 
-export const createUser = (data) => {
+export const createUser = (data, avatarFile = null) => {
+  const formData = new FormData()
+  
+  // 将用户数据转换为 JSON 字符串并添加到 FormData
+  const userData = {
+    username: data.username,
+    password: data.password,
+    name: data.name,
+    employeeNo: data.employeeNo,
+    dept: data.dept,
+    phone: data.phone,
+    role: data.role
+  }
+  formData.append('userData', new Blob([JSON.stringify(userData)], { type: 'application/json' }))
+  
+  // 如果有头像文件，添加到 FormData
+  if (avatarFile) {
+    formData.append('avatar', avatarFile)
+  }
+  
   return request({
     url: '/users',
     method: 'post',
-    data
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 
-export const updateUser = (id, data) => {
+export const updateUser = (id, data, avatarFile = null) => {
+  const formData = new FormData()
+  
+  // 将用户数据转换为 JSON 字符串并添加到 FormData
+  const userData = {
+    name: data.name,
+    employeeNo: data.employeeNo,
+    dept: data.dept,
+    phone: data.phone,
+    status: data.status,
+    avatar: data.avatar
+  }
+  formData.append('userData', new Blob([JSON.stringify(userData)], { type: 'application/json' }))
+  
+  // 如果有头像文件，添加到 FormData
+  if (avatarFile) {
+    formData.append('avatar', avatarFile)
+  }
+  
   return request({
     url: `/users/${id}`,
     method: 'put',
-    data
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 
@@ -44,10 +87,11 @@ export const importUsers = (file) => {
   })
 }
 
-export const exportUsers = () => {
+export const exportUsers = (keyword = null) => {
   return request({
     url: '/users/export',
     method: 'get',
+    params: keyword ? { keyword } : {},
     responseType: 'blob'
   })
 }

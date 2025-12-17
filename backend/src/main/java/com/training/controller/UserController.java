@@ -36,18 +36,23 @@ public class UserController {
     /**
      * 创建用户
      */
-    @PostMapping
-    public Result<User> createUser(@Valid @RequestBody UserCreateDTO dto) {
-        User user = userService.createUser(dto);
-        return Result.success(user);
+    @PostMapping(consumes = {"multipart/form-data"})
+    public Result<User> createUser(
+            @RequestPart("userData") @Valid UserCreateDTO dto,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
+            User user = userService.createUserWithAvatar(dto, avatarFile);
+            return Result.success(user);
     }
 
     /**
-     * 更新用户
+     * 更新用户（支持头像上传）
      */
-    @PutMapping("/{id}")
-    public Result<Boolean> updateUser(@PathVariable Long id, @RequestBody UserUpdateDTO dto) {
-        boolean result = userService.updateUser(id, dto);
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public Result<Boolean> updateUser(
+            @PathVariable Long id,
+            @RequestPart("userData") @Valid UserUpdateDTO dto,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
+        boolean result = userService.updateUserWithAvatar(id, dto, avatarFile);
         return result ? Result.success(true) : Result.error("用户不存在");
     }
 
@@ -71,9 +76,12 @@ public class UserController {
 
     /**
      * Excel导出用户
+     * @param keyword 关键词筛选（可选）
      */
     @GetMapping("/export")
-    public void exportUsers(HttpServletResponse response) throws IOException {
-        userService.exportUsers(response);
+    public void exportUsers(
+            HttpServletResponse response,
+            @RequestParam(required = false) String keyword) throws IOException {
+        userService.exportUsers(response, keyword);
     }
 }

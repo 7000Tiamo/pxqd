@@ -40,3 +40,45 @@ file:
 app:
   frontend:
     domain: http://172.25.8.77:3000
+
+appconfigServerUrl: http://tap-dev.thunisoft.com/appconfig
+corp: 2400
+tap:
+  #配置中心，3.X
+  appconfig:
+    appBs: xygpx.test
+    #env: 可选，支持环境变量，如dev/prod/test
+    # 配置中心服务端2.x，推荐配置ids(分组ID)和sysId(子系统ID)，兼容配置中心服务端3.x
+    #appconfig.ids=796232cb15c14745a61b84a6efe8ccbd,a01a18be81cc41148d1ebad4921306db
+    #appconfig.sysId=6dded544289b414aac5584a6efe8ccbd
+    #ids: 952beedaca3449ac9231aed8eb9df994
+#tcs配置，详细说明请参考官方文档：http://tcs.thunisoft.com/
+storage:  # 以下配置默认为false（指定存储配置平台为local,配合第二步的local使用），如果需要调整true 请配置文档申明
+  enable: true # 是否激活 TCS Client 的配置项
+  #因为读取不了下面的值而做的冗余，与下面的storageId相同
+  storageId: s3.xygpx
+  #因为读取不了下面的值而做的冗余，与下面的defaultBucketName相同
+  bucketName: xygpx
+  #因为读取不了下面的值而做的冗余，与下面的default相同
+  defaultCorp: default
+  platform:
+    appconfig: false # 说明指定存储配置平台为 TAP 的配置中心 appconfig,配合第二步的 appconfig 使用，不使用请设为 false.
+    tcs-server: false # 说明指定存储配置平台为 TCS 管理平台 tcs-server,配合第二步的 TCS Server 使用，不使用请设为 false.
+  default:  # 以下配置默认为 true，如果需要调整 false 请配置文档申明
+    appconfig-default-business: false # 表示使用本 starter 提供的配置中心配置
+    serverconfig-default-business: false #这是 v2.3.0 新增的配置，表示使用本 starter 提供的默认 TCS Server 业务配置.
+    default-ftp-context: false # 表示激活 ftp 的上下文配置
+    default-loadbalance-config: true # 表示激活客户端负载均衡的配置
+    default-minio-context: true # 表示激活 MinIO 的上下文配置
+    default-oss-context: false # 这是 v2.2.0 版本新增的配置，表示激活阿里云存储的上下文配置
+    default-qingstor-context: false # 这是 v2.3.0 版本新增的配置，表示激活青云对象存储的上下文配置
+  configs:
+    default: # 此处为单位 ID，可使用英文,号分隔，表示多个单位共用相同的存储配置，如果没有单位，使用 'default' 关键字替代即可.
+      - storeServerType: s3 # 存储服务类型，'s3'表示 MinIO，'ftp'表示 FTP 存储，'oss' 表示阿里云存储，'qingstor' 表示青云对象存储.
+        storageId: s3.xygpx # 本存储节点的 ID 标识，会在协议 protocol 中体现，须以对应的存储服务类型开头，并保证该值唯一.
+        endpoint: http://172.25.17.183:9000 # MinIO 的访问地址
+        accessKey: lsdsjpt # MinIO 的访问密钥，相当于访问用户名
+        secretKey: minio123456 # MinIO 的私密密钥，相当于访问密码
+        defaultBucketName: xygpx # 业务系统默认操作的桶名称，上传时，也可指定其它桶
+        writeable: true # 是否可向 MinIO 中写入数据
+        ext: '{"keepliveTime": "60"}' # MinIO 的扩展配置信息，通常不需要配置，空着即可，目前可配置的值是 MinIO 客户端连接池的 'keepliveTime'

@@ -12,6 +12,7 @@
         <result column="role" property="role"/>
         <result column="status" property="status"/>
         <result column="password" property="password"/>
+        <result column="avatar" property="avatar"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
@@ -57,8 +58,8 @@
     </select>
     
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (username, name, employee_no, dept, phone, role, status, password, created_at, updated_at)
-        VALUES (#{username}, #{name}, #{employeeNo}, #{dept}, #{phone}, #{role}, #{status}, #{password}, #{createdAt}, #{updatedAt})
+        INSERT INTO users (username, name, employee_no, dept, phone, role, status, password, avatar, created_at, updated_at)
+        VALUES (#{username}, #{name}, #{employeeNo}, #{dept}, #{phone}, #{role}, #{status}, #{password}, #{avatar}, #{createdAt}, #{updatedAt})
     </insert>
     
     <update id="updateById">
@@ -68,6 +69,7 @@
             dept = #{dept},
             phone = #{phone},
             status = #{status},
+            avatar = #{avatar},
             updated_at = #{updatedAt}
         WHERE id = #{id}
     </update>

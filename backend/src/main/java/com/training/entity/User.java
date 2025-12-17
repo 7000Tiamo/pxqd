@@ -52,6 +52,11 @@ public class User {
     private String password;
 
     /**
+     * 头像URL
+     */
+    private String avatar;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createdAt;

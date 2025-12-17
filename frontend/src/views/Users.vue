@@ -45,6 +45,11 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="createdAt" label="创建时间" width="180">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
@@ -101,6 +106,18 @@
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="form.phone" />
         </el-form-item>
+        <el-form-item label="头像">
+          <el-upload
+            :auto-upload="false"
+            :on-change="handleAvatarChange"
+            :show-file-list="false"
+            accept="image/*"
+            class="avatar-uploader"
+          >
+            <img v-if="avatarPreview" :src="avatarPreview" class="avatar" />
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          </el-upload>
+        </el-form-item>
         <el-form-item label="状态" prop="status" v-if="form.id">
           <el-radio-group v-model="form.status">
             <el-radio :label="1">启用</el-radio>
@@ -145,6 +162,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { getUserList, createUser, updateUser, deleteUser, importUsers, exportUsers } from '@/api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -153,6 +171,8 @@ const dialogTitle = ref('新建用户')
 const importDialogVisible = ref(false)
 const importLoading = ref(false)
 const uploadFile = ref(null)
+const avatarFile = ref(null)
+const avatarPreview = ref('')
 
 const searchForm = reactive({
   keyword: ''
@@ -223,6 +243,9 @@ const handleEdit = (row) => {
     phone: row.phone || '',
     status: row.status
   })
+  // 加载现有头像
+  avatarPreview.value = row.avatar || ''
+  avatarFile.value = null
   dialogVisible.value = true
 }
 
@@ -256,8 +279,9 @@ const handleSubmit = async () => {
             employeeNo: form.employeeNo,
             dept: form.dept,
             phone: form.phone,
-            status: form.status
-          })
+            status: form.status,
+            avatar: avatarPreview.value && !avatarFile.value ? avatarPreview.value : null
+          }, avatarFile.value)
           ElMessage.success('更新成功')
         } else {
           await createUser({
@@ -267,7 +291,7 @@ const handleSubmit = async () => {
             employeeNo: form.employeeNo,
             dept: form.dept,
             phone: form.phone
-          })
+          }, avatarFile.value)
           ElMessage.success('创建成功')
         }
         dialogVisible.value = false
@@ -290,7 +314,19 @@ const resetForm = () => {
     phone: '',
     status: 1
   })
+  avatarFile.value = null
+  avatarPreview.value = ''
   formRef.value?.resetFields()
+}
+
+const handleAvatarChange = (file) => {
+  avatarFile.value = file.raw
+  // 创建预览
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    avatarPreview.value = e.target.result
+  }
+  reader.readAsDataURL(file.raw)
 }
 
 const handleImport = () => {
@@ -323,18 +359,53 @@ const handleImportSubmit = async () => {
 
 const handleExport = async () => {
   try {
-    const res = await exportUsers()
-    const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    // 传递当前搜索关键词，如果有的话
+    const keyword = searchForm.keyword?.trim() || null
+    const blob = await exportUsers(keyword)
+    
+    // 检查blob是否有效
+    if (!blob || !(blob instanceof Blob)) {
+      ElMessage.error('导出失败：无效的响应数据')
+      return
+    }
+    
+    // 创建下载链接
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
+    link.style.display = 'none'
+    
+    // 生成文件名，包含时间戳
+    const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, '').replace('T', '_')
+    link.download = `用户列表_${timestamp}.xlsx`
     link.href = url
-    link.download = `用户列表_${new Date().getTime()}.xlsx`
+    
+    // 添加到DOM并触发下载
+    document.body.appendChild(link)
     link.click()
+    
+    // 清理
+    document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
-    ElMessage.success('导出成功')
+    
+    // 根据是否有筛选条件显示不同的提示信息
+    const message = keyword 
+      ? `导出成功！已导出筛选条件"${keyword}"下的用户数据` 
+      : '导出成功！已导出所有用户数据'
+    ElMessage.success(message)
   } catch (error) {
-    ElMessage.error('导出失败')
+    ElMessage.error(error.message || '导出失败')
   }
+}
+
+// 格式化日期（只显示日期，不显示时间）
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return '-'
+  const date = new Date(dateTime)
+  if (isNaN(date.getTime())) return dateTime
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 onMounted(() => {
@@ -363,6 +434,36 @@ onMounted(() => {
 
 .search-form {
   margin-bottom: 20px;
+}
+
+.avatar-uploader {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  text-align: center;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.avatar-uploader-icon:hover {
+  border-color: #409eff;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
 }
 </style>
 

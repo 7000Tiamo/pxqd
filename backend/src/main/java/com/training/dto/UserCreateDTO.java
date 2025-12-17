@@ -20,6 +20,7 @@ public class UserCreateDTO {
     private String dept;
     private String phone;
     private String role = "employee"; // admin/employee
+    private String avatar; // 头像URL
 }
 
 

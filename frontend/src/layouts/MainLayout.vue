@@ -19,7 +19,13 @@
       <div class="header-right">
         <el-dropdown @command="handleCommand">
           <span class="user-info">
-            <el-icon><User /></el-icon>
+            <el-avatar 
+              v-if="user?.avatar" 
+              :src="user.avatar" 
+              :size="32"
+              style="margin-right: 8px;"
+            />
+            <el-icon v-else style="margin-right: 8px;"><User /></el-icon>
             {{ user?.name || '用户' }}
             <el-icon class="el-icon--right"><arrow-down /></el-icon>
           </span>
