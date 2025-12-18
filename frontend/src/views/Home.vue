@@ -41,13 +41,13 @@
               <span>快捷操作</span>
             </template>
             <div class="quick-actions">
-              <el-button type="primary" @click="$router.push('/trainings/create')" style="width: 100%; margin-bottom: 10px">
+              <el-button class="quick-action-btn" type="primary" @click="$router.push('/trainings/create')">
                 发布新培训
               </el-button>
-              <el-button @click="$router.push('/users')" style="width: 100%; margin-bottom: 10px">
+              <el-button class="quick-action-btn" @click="$router.push('/users')">
                 添加新员工
               </el-button>
-              <el-button @click="$router.push('/stats')" style="width: 100%">
+              <el-button class="quick-action-btn" @click="$router.push('/stats')">
                 数据统计
               </el-button>
             </div>
@@ -248,6 +248,17 @@ onMounted(() => {
 .quick-actions {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.quick-action-btn {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Element Plus 默认会给相邻按钮加 margin-left，竖排时会造成左右不齐 */
+.quick-actions .el-button + .el-button {
+  margin-left: 0;
 }
 
 .mb-20 {

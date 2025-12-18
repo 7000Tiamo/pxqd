@@ -7,7 +7,7 @@
     
     <!-- 概览统计 -->
     <el-row :gutter="20" class="overview-stats">
-      <el-col :span="6" v-for="(item, index) in overviewStats" :key="index">
+      <el-col :span="overviewColSpan" v-for="(item, index) in overviewStats" :key="index">
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-value">{{ item.value }}</div>
@@ -49,7 +49,6 @@
           <el-table-column prop="totalUsers" label="总人数" width="100" />
           <el-table-column prop="totalParticipations" label="参与人次" width="120" />
           <el-table-column prop="totalCheckins" label="签到人次" width="120" />
-          <el-table-column prop="participationRate" label="参与率" width="120" />
         </el-table>
         
         <div class="chart-container mt-20">
@@ -73,8 +72,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { getOverviewStats, getStatsByTraining, getStatsByDepartment, getStatsByEmployee } from '@/api/stats'
+import { ref, computed, onMounted } from 'vue'
+import { getTongji, getStatsByTraining, getStatsByDepartment, getStatsByEmployee } from '@/api/stats'
 import { ElMessage } from 'element-plus'
 
 
@@ -83,6 +82,11 @@ const overviewStats = ref([])
 const trainingStats = ref([])
 const departmentStats = ref([])
 const employeeStats = ref([])
+
+const overviewColSpan = computed(() => {
+  const len = overviewStats.value.length || 1
+  return Math.floor(24 / len)
+})
 
 const departmentChartOption = computed(() => {
   return {
@@ -101,14 +105,13 @@ const departmentChartOption = computed(() => {
       data: departmentStats.value.map(item => item.department)
     },
     yAxis: {
-      type: 'value',
-      max: 100
+      type: 'value'
     },
     series: [
       {
-        name: '参与率',
+        name: '参与人次',
         type: 'bar',
-        data: departmentStats.value.map(item => parseFloat(item.participationRate.replace('%', ''))),
+        data: departmentStats.value.map(item => Number(item.totalParticipations ?? 0)),
         itemStyle: {
           color: '#409eff'
         }
@@ -119,12 +122,18 @@ const departmentChartOption = computed(() => {
 
 const loadOverviewStats = async () => {
   try {
-    const res = await getOverviewStats()
+    const res = await getTongji()
+    const data = res.data || {}
+
+    // monthlyParticipationRate 可能是 0~1 的比例，也可能是 0~100 的百分比数值，这里做兼容
+    const rawRate = Number(data.monthlyParticipationRate ?? 0)
+    const ratePercent = rawRate <= 1 ? rawRate * 100 : rawRate
+    const rateText = `${ratePercent.toFixed(2)}%`
+
     overviewStats.value = [
-      { label: '本月平均参与率', value: res.data.completionRate || '0%' },
-      { label: '累计培训时长', value: '126h' },
-      { label: '人均培训场次', value: '3.2' },
-      { label: '总投入预算', value: '¥12,400' }
+      { label: '本月平均参与率', value: rateText },
+      { label: '累计培训时长', value: `${Number(data.totalTrainingHours ?? 0).toFixed(2)}h` },
+      { label: '人均培训场次', value: Number(data.averageTrainingSessions ?? 0).toFixed(2) }
     ]
   } catch (error) {
     console.error(error)

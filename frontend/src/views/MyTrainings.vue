@@ -557,9 +557,9 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 30px;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #409eff 0%, #66b1ff 55%, #79bbff 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.22);
 }
 
 .page-title {
@@ -584,9 +584,10 @@ onMounted(() => {
 .stat-item {
   text-align: center;
   padding: 15px 25px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(10px);
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   min-width: 100px;
   transition: all 0.3s;
 }
