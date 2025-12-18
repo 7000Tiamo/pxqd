@@ -21,4 +21,9 @@ public interface TrainingMapper {
     int deleteById(Long id);
 
     List<Training> selectByStatus(String status);
+
+    int selectCountByMonth();
+
+    List<Long> selectByMonth();
+    Double selectMonthlyTrainingHours();
 }

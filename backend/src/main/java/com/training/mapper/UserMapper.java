@@ -27,4 +27,6 @@ public interface UserMapper {
     User selectByUsernameAndEmployeeNo(@Param("username") String username, @Param("employeeNo") String employeeNo);
 
     int countByEmployeeNo(@Param("employeeNo") String employeeNo, @Param("excludeId") Long excludeId);
+
+    int selectByStatus();
 }

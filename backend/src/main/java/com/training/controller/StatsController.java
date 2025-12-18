@@ -1,6 +1,7 @@
 package com.training.controller;
 
 import com.training.common.api.Result;
+import com.training.dto.TongJiDTO;
 import com.training.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,17 @@ public class StatsController {
         List<Map<String, Object>> result = statsService.getStatsByEmployee();
         return Result.success(result);
     }
+
+    /**
+     *统计全局性信息
+     */
+    @GetMapping("/tongji")
+    public Result<TongJiDTO> getTongJi()
+    {
+        TongJiDTO toongji = statsService.getTongji();
+        return Result.success(toongji);
+    }
+
 }
 
 

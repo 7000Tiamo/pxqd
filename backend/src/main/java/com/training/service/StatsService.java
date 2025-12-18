@@ -1,5 +1,6 @@
 package com.training.service;
 
+import com.training.dto.TongJiDTO;
 import com.training.entity.Checkin;
 import com.training.entity.Enrollment;
 import com.training.entity.Training;
@@ -188,5 +189,33 @@ public class StatsService {
                 }
 
                 return result;
+        }
+
+        public TongJiDTO getTongji() {
+
+            double monthsParticipationRate = 0;
+            double monthsAveragePerUser = 0;
+                //1.本月平均参与率
+            int trainingcount = trainingMapper.selectCountByMonth();
+            int usercount = userMapper.selectByStatus();
+            List<Long> ids = trainingMapper.selectByMonth();
+            for(Long id : ids){
+                int enrollcount = enrollmentMapper.countByTrainingId(id);
+                if( usercount==0 )
+                {
+                    monthsParticipationRate=0;
+                    break;
+                }
+                monthsParticipationRate += (double)enrollcount/usercount;
+                monthsAveragePerUser += enrollcount;
+            }
+            monthsParticipationRate/=trainingcount;
+            double monthsTotalHours = trainingMapper.selectMonthlyTrainingHours();
+            monthsAveragePerUser /= usercount ;
+            TongJiDTO tongJiDTO = new TongJiDTO();
+            tongJiDTO.setTotalTrainingHours(monthsTotalHours);
+            tongJiDTO.setAverageTrainingSessions(monthsAveragePerUser);
+            tongJiDTO.setMonthlyParticipationRate(monthsParticipationRate);
+            return tongJiDTO;
         }
 }

@@ -77,6 +77,35 @@
     <delete id="deleteById">
         DELETE FROM trainings WHERE id = #{id}
     </delete>
-    
+
+    <select id="selectCountByMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM trainings
+        WHERE start_time >= DATE_TRUNC('month', CURRENT_DATE)
+        AND start_time &lt; DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+    </select>
+    <select id="selectByMonth" resultType="java.lang.Long">
+
+            SELECT id
+            FROM trainings
+            WHERE
+            start_time >= DATE_TRUNC('month', CURRENT_DATE)
+            AND start_time &lt; DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+
+    </select>
+    <select id="selectMonthlyTrainingHours" resultType="double">
+        SELECT
+        COALESCE(
+        SUM(EXTRACT(EPOCH FROM (end_time - start_time)) / 3600),
+        0.0
+        )
+        FROM trainings
+        WHERE
+        start_time >= DATE_TRUNC('month', CURRENT_DATE)
+        AND start_time &lt;DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+        AND status = 'ended'
+        AND end_time IS NOT NULL
+        AND end_time > start_time
+    </select>
 </mapper>
 

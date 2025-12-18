@@ -77,6 +77,11 @@
     <delete id="deleteById">
         DELETE FROM users WHERE id = #{id}
     </delete>
-    
+
+    <select id="selectByStatus" resultType="int">
+        select  count(*)
+        from users
+        where status = 1
+    </select>
 </mapper>
 

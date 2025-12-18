@@ -23,4 +23,5 @@ public interface EnrollmentMapper {
     int updateById(Enrollment enrollment);
 
     int deleteById(Long id);
+
 }
