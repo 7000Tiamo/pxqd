@@ -144,6 +144,33 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
+
+        <!-- Apache POI - Excel 支持 -->
+        <!-- 显式指定 POI 版本为 5.2.2 -->
+        <!-- 移除所有 poi-ooxml 5.x 相关依赖 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>4.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>4.1.2</version>
+        </dependency>
+
+        <!-- 可选：显式排除 xmlbeans（POI 4.1.2 自带兼容版本，通常不需要额外引入） -->
+        <!-- 如果你之前加了 xmlbeans:5.1.1，请删除它！ -->
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version> <!-- 或 2.16.1（最新稳定版） -->
+        </dependency>
     </dependencies>
 
     <build>
