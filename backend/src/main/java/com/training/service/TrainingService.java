@@ -35,6 +35,13 @@ public class TrainingService {
      */
     @Transactional
     public Training createTraining(TrainingCreateDTO dto) {
+        // 验证结束时间必须大于开始时间
+        if (dto.getStartTime() != null && dto.getEndTime() != null) {
+            if (!dto.getEndTime().isAfter(dto.getStartTime())) {
+                throw new BizException(ErrorCode.BUSINESS_CONFLICT, "结束时间必须大于开始时间");
+            }
+        }
+
         Training training = new Training();
         training.setTitle(dto.getTitle());
         training.setDescription(dto.getDescription());
@@ -93,6 +100,15 @@ public class TrainingService {
         if (dto.getStatus() != null)
             training.setStatus(dto.getStatus());
 
+        // 验证结束时间必须大于开始时间
+        LocalDateTime startTime = training.getStartTime();
+        LocalDateTime endTime = training.getEndTime();
+        if (startTime != null && endTime != null) {
+            if (!endTime.isAfter(startTime)) {
+                throw new BizException(ErrorCode.BUSINESS_CONFLICT, "结束时间必须大于开始时间");
+            }
+        }
+
         training.setUpdatedAt(LocalDateTime.now());
         return trainingMapper.updateById(training) > 0;
     }
@@ -109,6 +125,11 @@ public class TrainingService {
 
         if (training.getStartTime() == null || training.getEndTime() == null) {
             throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_TIME_NOT_SET);
+        }
+
+        // 验证结束时间必须大于开始时间
+        if (!training.getEndTime().isAfter(training.getStartTime())) {
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, "结束时间必须大于开始时间");
         }
 
         training.setStatus("open");

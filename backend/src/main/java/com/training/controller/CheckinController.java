@@ -1,6 +1,7 @@
 package com.training.controller;
 
 import com.training.common.api.Result;
+import com.training.constants.RedisKeyConstants;
 import com.training.dto.CheckinDTO;
 import com.training.dto.CheckoutDTO;
 import com.training.dto.PublicCheckinDTO;
@@ -82,6 +83,15 @@ public class CheckinController {
                 publicCheckinDTO.getToken());
         return Result.success(checkin);
     }
+    @PostMapping("/isCheckinActive")
+    public Result<Object> isCheckinActive(@RequestParam Long trainingId, @RequestParam String token) {
+        return Result.success(checkinService.isValidToken(trainingId,token, RedisKeyConstants.QR_CHECKIN_TOKEN_PREFIX));
+    }
+    @PostMapping("/isCheckoutActive")
+    public Result<Object> isCheckoutActive(@RequestParam Long trainingId, @RequestParam String token) {
+        return Result.success(checkinService.isValidToken(trainingId,token, RedisKeyConstants.QR_CHECKOUT_TOKEN_PREFIX));
+    }
+
 
     /**
      * 公开扫码签退（通过用户名和工号）
