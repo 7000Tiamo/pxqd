@@ -7,6 +7,14 @@ export const getOverviewStats = () => {
   })
 }
 
+// 全局统计（数据统计页概览）
+export const getTongji = () => {
+  return request({
+    url: '/stats/tongji',
+    method: 'get'
+  })
+}
+
 export const getStatsByTraining = () => {
   return request({
     url: '/stats/by-training',
