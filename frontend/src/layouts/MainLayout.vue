@@ -2,6 +2,8 @@
   <el-container class="layout-container">
     <el-header class="header">
       <div class="header-left">
+        <!-- 品牌图标：使用 public 下的 favicon.ico（路径为 /favicon.ico） -->
+        <img class="brand-img" src="/favicon.ico" alt="logo" />
         <h2>企业培训签到系统</h2>
       </div>
       <el-menu
@@ -82,6 +84,19 @@ const handleCommand = (command) => {
   background: #fff;
   border-bottom: 1px solid #e4e7ed;
   padding: 0 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  display: block;
 }
 
 .header-left h2 {
