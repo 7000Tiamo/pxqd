@@ -127,15 +127,6 @@
       <div class="qr-wrap" v-if="qrCodeUrl">
         <img :src="qrCodeUrl" alt="签到二维码" class="qr-image" />
         <p class="qr-desc">手机扫码打开签到页面，输入用户名和工号即可签到</p>
-        <el-input
-          v-model="qrTargetUrl"
-          readonly
-          class="mt-10"
-        >
-          <template #append>
-            <el-button @click="copyLink">复制链接</el-button>
-          </template>
-        </el-input>
       </div>
       <div v-else class="qr-loading">
         <el-icon class="is-loading"><Loading /></el-icon>
@@ -152,15 +143,6 @@
       <div class="qr-wrap" v-if="checkoutQrCodeUrl">
         <img :src="checkoutQrCodeUrl" alt="签退二维码" class="qr-image" />
         <p class="qr-desc">手机扫码打开签退页面，输入用户名和工号即可签退</p>
-        <el-input
-          v-model="checkoutQrTargetUrl"
-          readonly
-          class="mt-10"
-        >
-          <template #append>
-            <el-button @click="copyCheckoutLink">复制链接</el-button>
-          </template>
-        </el-input>
       </div>
       <div v-else class="qr-loading">
         <el-icon class="is-loading"><Loading /></el-icon>
@@ -177,8 +159,8 @@ import { useAuthStore } from '@/stores/auth'
 import { getTrainingDetail } from '@/api/training'
 import { getTrainingEnrollments } from '@/api/enrollment'
 import { getCheckinStats } from '@/api/checkin'
-import { ElMessage } from 'element-plus'
-import { Loading, CopyDocument } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
 const route = useRoute()
@@ -191,12 +173,10 @@ const enrollmentList = ref([])
 const statsCards = ref([])
 const qrDialogVisible = ref(false)
 const qrCodeUrl = ref('')
-const qrTargetUrl = ref('')
 let qrBlobUrl = ''
 
 const checkoutQrDialogVisible = ref(false)
 const checkoutQrCodeUrl = ref('')
-const checkoutQrTargetUrl = ref('')
 let checkoutQrBlobUrl = ''
 
 const isAdmin = computed(() => authStore.user?.role === 'admin')
@@ -264,66 +244,119 @@ const loadData = async () => {
 
 const generateQRCode = () => {
   if (!route.params.id) return
-  qrDialogVisible.value = true
-  qrCodeUrl.value = ''
-  const origin = import.meta.env.VITE_FRONTEND_DOMAIN || window.location.origin
-  qrTargetUrl.value = `${origin}/checkin?training_id=${route.params.id}`
   
-
-  // 获取后端生成的二维码图片（PNG）
-  const token = authStore.token
-  fetch(`/api/qrcode?trainingId=${route.params.id}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
+  // 弹出输入框让用户输入有效期
+  ElMessageBox.prompt('请输入二维码有效期（分钟）', '生成签到二维码', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    inputType: 'number',
+    inputValue: '10',
+    inputPlaceholder: '请输入有效期（分钟）',
+    inputValidator: (value) => {
+      if (!value || value.trim() === '') {
+        return '请输入有效期'
+      }
+      const minutes = parseInt(value)
+      if (isNaN(minutes) || minutes <= 0) {
+        return '请输入大于0的整数'
+      }
+      if (minutes > 1440) {
+        return '有效期不能超过1440分钟（24小时）'
+      }
+      return true
     }
   })
-    .then(async (res) => {
-      if (!res.ok) {
-        if (res.status === 403) {
-          throw new Error('无权限，仅管理员可以生成二维码')
+    .then(({ value }) => {
+      const minutes = parseInt(value)
+      // 开始生成二维码
+      qrDialogVisible.value = true
+      qrCodeUrl.value = ''
+      // 获取后端生成的二维码图片（PNG）
+      const token = authStore.token
+      fetch(`/api/qrcode?trainingId=${route.params.id}&time=${minutes}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-        throw new Error('二维码生成失败')
-      }
-      const blob = await res.blob()
-      if (qrBlobUrl) URL.revokeObjectURL(qrBlobUrl)
-      qrBlobUrl = URL.createObjectURL(blob)
-      qrCodeUrl.value = qrBlobUrl
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            if (res.status === 403) {
+              throw new Error('无权限，仅管理员可以生成二维码')
+            }
+            throw new Error('二维码生成失败')
+          }
+          const blob = await res.blob()
+          if (qrBlobUrl) URL.revokeObjectURL(qrBlobUrl)
+          qrBlobUrl = URL.createObjectURL(blob)
+          qrCodeUrl.value = qrBlobUrl
+          ElMessage.success(`二维码已生成，有效期${minutes}分钟`)
+        })
+        .catch((error) => {
+          ElMessage.error(error.message || '二维码生成失败，请稍后重试')
+          qrDialogVisible.value = false
+        })
     })
-    .catch((error) => {
-      ElMessage.error(error.message || '二维码生成失败，请稍后重试')
-      qrDialogVisible.value = false
+    .catch(() => {
+      // 用户取消输入
     })
 }
 
 const generateCheckoutQRCode = () => {
   if (!route.params.id) return
-  checkoutQrDialogVisible.value = true
-  checkoutQrCodeUrl.value = ''
-  const origin = import.meta.env.VITE_FRONTEND_DOMAIN || window.location.origin
-  checkoutQrTargetUrl.value = `${origin}/checkout?training_id=${route.params.id}`
-
-  // 获取后端生成的签退二维码图片（PNG）
-  const token = authStore.token
-  fetch(`/api/qrcode/checkout?trainingId=${route.params.id}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
+  
+  // 弹出输入框让用户输入有效期
+  ElMessageBox.prompt('请输入二维码有效期（分钟）', '生成签退二维码', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    inputType: 'number',
+    inputValue: '10',
+    inputPlaceholder: '请输入有效期（分钟）',
+    inputValidator: (value) => {
+      if (!value || value.trim() === '') {
+        return '请输入有效期'
+      }
+      const minutes = parseInt(value)
+      if (isNaN(minutes) || minutes <= 0) {
+        return '请输入大于0的整数'
+      }
+      if (minutes > 1440) {
+        return '有效期不能超过1440分钟（24小时）'
+      }
+      return true
     }
   })
-    .then(async (res) => {
-      if (!res.ok) {
-        if (res.status === 403) {
-          throw new Error('无权限，仅管理员可以生成二维码')
+    .then(({ value }) => {
+      const minutes = parseInt(value)
+      // 开始生成二维码
+      checkoutQrDialogVisible.value = true
+      checkoutQrCodeUrl.value = ''
+      // 获取后端生成的签退二维码图片（PNG）
+      const token = authStore.token
+      fetch(`/api/qrcode/checkout?trainingId=${route.params.id}&time=${minutes}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-        throw new Error('二维码生成失败')
-      }
-      const blob = await res.blob()
-      if (checkoutQrBlobUrl) URL.revokeObjectURL(checkoutQrBlobUrl)
-      checkoutQrBlobUrl = URL.createObjectURL(blob)
-      checkoutQrCodeUrl.value = checkoutQrBlobUrl
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            if (res.status === 403) {
+              throw new Error('无权限，仅管理员可以生成二维码')
+            }
+            throw new Error('二维码生成失败')
+          }
+          const blob = await res.blob()
+          if (checkoutQrBlobUrl) URL.revokeObjectURL(checkoutQrBlobUrl)
+          checkoutQrBlobUrl = URL.createObjectURL(blob)
+          checkoutQrCodeUrl.value = checkoutQrBlobUrl
+          ElMessage.success(`二维码已生成，有效期${minutes}分钟`)
+        })
+        .catch((error) => {
+          ElMessage.error(error.message || '二维码生成失败，请稍后重试')
+          checkoutQrDialogVisible.value = false
+        })
     })
-    .catch((error) => {
-      ElMessage.error(error.message || '二维码生成失败，请稍后重试')
-      checkoutQrDialogVisible.value = false
+    .catch(() => {
+      // 用户取消输入
     })
 }
 
@@ -333,26 +366,6 @@ const editTraining = () => {
 
 const publishNotice = () => {
   ElMessage.info('公告发布功能开发中')
-}
-
-const copyLink = async () => {
-  if (!qrTargetUrl.value) return
-  try {
-    await navigator.clipboard.writeText(qrTargetUrl.value)
-    ElMessage.success('链接已复制')
-  } catch (error) {
-    ElMessage.error('复制失败，请手动复制')
-  }
-}
-
-const copyCheckoutLink = async () => {
-  if (!checkoutQrTargetUrl.value) return
-  try {
-    await navigator.clipboard.writeText(checkoutQrTargetUrl.value)
-    ElMessage.success('链接已复制')
-  } catch (error) {
-    ElMessage.error('复制失败，请手动复制')
-  }
 }
 
 const handleQrClose = () => {

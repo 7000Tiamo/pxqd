@@ -1,23 +1,22 @@
 <template>
   <div class="checkin-page">
     <div class="checkin-card">
+      <!-- 二维码过期提示（扫码进入且 token 无效时显示） -->
+      <el-result
+        v-if="tokenExpired"
+        icon="error"
+        title="二维码已过期"
+        sub-title="请重新扫描有效的二维码进行签到"
+        class="expired-result"
+      />
+
+      <!-- 正常页面内容 -->
+      <template v-else>
       <div class="header">
         <div>
           <h2>培训签到</h2>
-          <p class="subtitle">扫码后自动带入培训ID，输入用户名和工号即可完成签到</p>
         </div>
-        <el-tag :type="trainingId ? 'success' : 'danger'">
-          {{ trainingId ? `培训ID：${trainingId}` : '缺少培训ID' }}
-        </el-tag>
       </div>
-
-      <el-alert
-        v-if="!trainingId"
-        type="error"
-        title="未获取到培训ID，请通过有效二维码进入或补充 training_id 参数"
-        show-icon
-        class="mb-16"
-      />
 
       <!-- 培训信息卡片 -->
       <el-card v-if="trainingInfo" class="training-info-card mb-16" shadow="never">
@@ -98,6 +97,7 @@
           </div>
         </template>
       </el-result>
+      </template>
     </div>
   </div>
 </template>
@@ -107,7 +107,7 @@ import { computed, reactive, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Location, Clock } from '@element-plus/icons-vue'
-import { publicCheckin } from '@/api/checkin'
+import { publicCheckin, isCheckinActive } from '@/api/checkin'
 import { getPublicTrainingInfo } from '@/api/training'
 import dayjs from 'dayjs'
 
@@ -117,6 +117,8 @@ const loading = ref(false)
 const checkinResult = ref(null)
 const trainingInfo = ref(null)
 const loadingTraining = ref(false)
+const tokenExpired = ref(false)
+const checkingToken = ref(false)
 
 const form = reactive({
   username: '',
@@ -130,6 +132,10 @@ const rules = {
 
 const trainingId = computed(() => {
   return route.query.training_id || route.query.trainingId || route.query.id
+})
+
+const token = computed(() => {
+  return route.query.token
 })
 
 const stateText = computed(() => {
@@ -165,10 +171,31 @@ watch(trainingId, (newId) => {
   }
 })
 
-onMounted(() => {
-  if (trainingId.value) {
+// 扫码进入时：先校验 token 是否有效（无 token 则不校验）
+const checkTokenValid = async () => {
+  if (!trainingId.value) return
+  if (!token.value) {
     loadTrainingInfo()
+    return
   }
+
+  checkingToken.value = true
+  try {
+    const res = await isCheckinActive(trainingId.value, token.value)
+    if (res.data === false) {
+      tokenExpired.value = true
+      return
+    }
+    loadTrainingInfo()
+  } catch (e) {
+    tokenExpired.value = true
+  } finally {
+    checkingToken.value = false
+  }
+}
+
+onMounted(() => {
+  checkTokenValid()
 })
 
 const handleSubmit = async () => {
@@ -183,7 +210,7 @@ const handleSubmit = async () => {
     if (!valid) return
     loading.value = true
     try {
-      const res = await publicCheckin(trainingId.value, form.username.trim(), form.employeeNo.trim())
+      const res = await publicCheckin(trainingId.value, form.username.trim(), form.employeeNo.trim(), token.value)
       checkinResult.value = res.data
       ElMessage.success('签到成功')
     } catch (error) {
@@ -287,5 +314,10 @@ const handleSubmit = async () => {
 .meta-item .el-icon {
   color: #909399;
 }
+
+.expired-result {
+  padding: 20px 0;
+}
+
 </style>
 

@@ -39,6 +39,20 @@ public class GlobalExceptionHandler {
         return Result.error(ErrorCode.VALIDATE_FAILED.getCode(), message);
     }
 
+    /**
+     * 运行时异常：如果业务方直接抛出了带有明确提示的 RuntimeException（例如“工号已存在”），
+     * 则优先将该提示返回给前端，便于前端直接展示。
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public Result<?> handleRuntimeException(RuntimeException ex) {
+        String msg = ex.getMessage();
+        log.error("运行时异常: {}", msg, ex);
+        if (msg != null && msg.trim().length() > 0) {
+            return Result.error(ErrorCode.SERVER_ERROR.getCode(), msg.trim());
+        }
+        return Result.error(ErrorCode.SERVER_ERROR);
+    }
+
     @ExceptionHandler(Exception.class)
     public Result<?> handleException(Exception ex) {
         log.error("系统异常", ex);

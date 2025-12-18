@@ -55,8 +55,15 @@ public class CheckinService {
         }
 
         Checkin existing = checkinMapper.selectByTrainingAndUser(trainingId, userId);
-        if (existing != null && "signed".equals(existing.getState())) {
-            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_ALREADY_CHECKIN);
+        if (existing != null) {
+            // 重复签到：不更新任何时间字段，直接提示
+            if ("signed".equals(existing.getState())) {
+                throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_ALREADY_CHECKIN);
+            }
+            // 已签退后不允许再签到（避免覆盖 checkinTime/updatedAt）
+            if ("checked_out".equals(existing.getState())) {
+                throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_ALREADY_CHECKOUT);
+            }
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -105,12 +112,15 @@ public class CheckinService {
         }
 
         Checkin checkin = checkinMapper.selectByTrainingAndUser(trainingId, userId);
-        if (checkin == null || !"signed".equals(checkin.getState())) {
+        if (checkin == null) {
             throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NEED_CHECKIN_FIRST);
         }
 
         if ("checked_out".equals(checkin.getState())) {
             throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_ALREADY_CHECKOUT);
+        }
+        if (!"signed".equals(checkin.getState())) {
+            throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NEED_CHECKIN_FIRST);
         }
 
         LocalDateTime now = LocalDateTime.now();

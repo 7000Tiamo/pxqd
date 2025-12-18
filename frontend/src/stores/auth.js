@@ -42,7 +42,12 @@ export const useAuthStore = defineStore('auth', () => {
       setUser(userRes.data, rememberMe)
       
       ElMessage.success('登录成功')
-      router.push('/home')
+      // 根据角色跳转：管理员到首页，员工到我的培训
+      if (userRes.data.role === 'admin') {
+        router.push('/home')
+      } else {
+        router.push('/my-trainings')
+      }
       return true
     } catch (error) {
       ElMessage.error(error.message || '登录失败')

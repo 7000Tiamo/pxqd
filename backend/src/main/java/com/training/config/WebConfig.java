@@ -37,7 +37,11 @@ public class WebConfig implements WebMvcConfigurer {
                         "/checkins/public",
                         "/api/checkins/public",
                         "/checkins/public/checkout",
-                        "/api/checkins/public/checkout"
+                        "/api/checkins/public/checkout",
+                        "/checkins/isCheckinActive",
+                        "/api/checkins/isCheckinActive",
+                        "/checkins/isCheckoutActive",
+                        "/api/checkins/isCheckoutActive"
                 );
     }
 }

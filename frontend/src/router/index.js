@@ -30,7 +30,8 @@ const routes = [
       {
         path: 'home',
         name: 'Home',
-        component: () => import('@/views/Home.vue')
+        component: () => import('@/views/Home.vue'),
+        meta: { role: 'admin' }
       },
       {
         path: 'my-trainings',
@@ -71,6 +72,11 @@ const routes = [
         name: 'Stats',
         component: () => import('@/views/Stats.vue'),
         meta: { role: 'admin' }
+      },
+      {
+        path: 'rag',
+        name: 'Rag',
+        component: () => import('@/views/Rag.vue')
       }
     ]
   }
@@ -94,10 +100,32 @@ router.beforeEach((to, from, next) => {
     return
   }
   
+  // 处理根路径重定向：根据角色跳转
+  if (to.path === '/' || to.path === '/home') {
+    if (to.path === '/home' && authStore.user?.role !== 'admin') {
+      // 员工访问首页，重定向到我的培训
+      next('/my-trainings')
+      return
+    }
+    if (to.path === '/' && authStore.user?.role === 'admin') {
+      next('/home')
+      return
+    }
+    if (to.path === '/' && authStore.user?.role !== 'admin') {
+      next('/my-trainings')
+      return
+    }
+  }
+  
   // 角色权限检查
   if (to.meta.role && authStore.user?.role !== to.meta.role) {
     ElMessage.error('无权限访问')
-    next('/home')
+    // 根据角色跳转到对应页面
+    if (authStore.user?.role === 'admin') {
+      next('/home')
+    } else {
+      next('/my-trainings')
+    }
     return
   }
   

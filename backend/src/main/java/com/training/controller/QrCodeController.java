@@ -51,7 +51,7 @@ public class QrCodeController {
         String redisKey= RedisKeyConstants.QR_CHECKIN_TOKEN_PREFIX+trainingId;
         redisTemplate.opsForValue().set(redisKey,newtoken,time, TimeUnit.MINUTES);
         // 构造签到页面   URL
-        String checkinUrl = frontendDomain + "/checkin?token=" + newtoken;
+        String checkinUrl = frontendDomain + "/checkin?token=" + newtoken + "&training_id=" + trainingId;
 
         // 生成二维码（300x300 像素）
         byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkinUrl, 300, 300);
@@ -81,7 +81,7 @@ public class QrCodeController {
         String redisKey= RedisKeyConstants.QR_CHECKOUT_TOKEN_PREFIX+trainingId;
         redisTemplate.opsForValue().set(redisKey,newtoken,time, TimeUnit.MINUTES);
         // 构造签到页面   URL
-        String checkoutUrl = frontendDomain + "/checkout?token=" + newtoken;
+        String checkoutUrl = frontendDomain + "/checkout?token=" + newtoken + "&training_id=" + trainingId;
 
         // 生成二维码（300x300 像素）
         byte[] qrCodeImage = QrCodeUtil.generateQrCode(checkoutUrl, 300, 300);
@@ -100,7 +100,7 @@ public class QrCodeController {
     private void checkAdminPermission(HttpServletRequest request) {
         // 优先从request attribute获取（拦截器设置的）
         Long userId = (Long) request.getAttribute("currentUserId");
-        
+
         // 如果attribute中没有，则从请求头中解析token
         if (userId == null) {
             String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -113,7 +113,7 @@ public class QrCodeController {
                 throw new BizException(ErrorCode.NOT_FOUND, "未登录或token无效");
             }
         }
-        
+
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BizException(ErrorCode.NOT_FOUND, "用户不存在");

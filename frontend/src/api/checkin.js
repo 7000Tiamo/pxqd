@@ -38,20 +38,38 @@ export const getCheckinStats = (trainingId) => {
 }
 
 // 公开扫码签到（通过用户名和工号）
-export const publicCheckin = (trainingId, username, employeeNo) => {
+export const publicCheckin = (trainingId, username, employeeNo, token) => {
   return request({
     url: '/checkins/public',
     method: 'post',
-    data: { trainingId, username, employeeNo }
+    data: { trainingId, username, employeeNo, token }
   })
 }
 
 // 公开扫码签退（通过用户名和工号）
-export const publicCheckout = (trainingId, username, employeeNo) => {
+export const publicCheckout = (trainingId, username, employeeNo, token) => {
   return request({
     url: '/checkins/public/checkout',
     method: 'post',
-    data: { trainingId, username, employeeNo }
+    data: { trainingId, username, employeeNo, token }
+  })
+}
+
+// 检查签到二维码是否有效
+export const isCheckinActive = (trainingId, token) => {
+  return request({
+    url: '/checkins/isCheckinActive',
+    method: 'post',
+    params: { trainingId, token }
+  })
+}
+
+// 检查签退二维码是否有效
+export const isCheckoutActive = (trainingId, token) => {
+  return request({
+    url: '/checkins/isCheckoutActive',
+    method: 'post',
+    params: { trainingId, token }
   })
 }
 
