@@ -45,6 +45,11 @@ public class StatsService {
                                 .filter(e -> "enrolled".equals(e.getStatus()))
                                 .count();
 
+                long monthEnrollments = allEnrollments.stream()
+                                .filter(e -> "enrolled".equals(e.getStatus()))
+                                .filter(e -> e.getEnrolledAt() != null && e.getEnrolledAt().isAfter(monthStart))
+                                .count();
+
                 List<Checkin> allCheckins = new ArrayList<>();
                 for (Training t : allTrainings) {
                         allCheckins.addAll(checkinMapper.selectByTrainingId(t.getId()));
@@ -54,10 +59,11 @@ public class StatsService {
                                 .count();
 
                 long completedCount = allCheckins.stream()
+                                .filter(c -> c.getCheckinTime() != null && c.getCheckinTime().isAfter(monthStart))
                                 .filter(c -> "checked_out".equals(c.getState()))
                                 .count();
 
-                double completionRate = monthCheckins > 0 ? (completedCount * 100.0 / monthCheckins) : 0.0;
+                double completionRate = monthEnrollments > 0 ? (completedCount * 100.0 / monthEnrollments) : 0.0;
 
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("monthTrainings", monthTrainings);

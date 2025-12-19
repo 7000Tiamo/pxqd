@@ -60,7 +60,7 @@
                 type="textarea"
                 :rows="3"
                 resize="none"
-                placeholder="输入问题，例如：公司的考勤制度是什么？"
+                placeholder="输入问题，例如：公司的考勤方式是什么？"
                 @keydown.enter.prevent="handleSend"
                 :disabled="loading"
               />
@@ -122,7 +122,7 @@ const authStore = useAuthStore()
 const messages = ref([
   {
     type: 'bot',
-    content: '你好！我是你的考勤助手，有问题请随时问我。例如："公司的考勤制度是什么？"',
+    content: '你好！我是你的考勤助手，有问题请随时问我。例如："公司的考勤方式是什么？ 上下班时间是多久？"',
     time: dayjs().format('HH:mm:ss')
   }
 ])
