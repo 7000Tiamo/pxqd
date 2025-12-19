@@ -30,7 +30,7 @@ public class QrCodeController {
     private final AuthService authService;
     private final StringRedisTemplate redisTemplate;
     // 从配置文件读取前端域名（推荐）
-    @Value("${app.frontend.domain:http://172.25.8.77:3000}")
+    @Value("${app.frontend.domain}")
     private String frontendDomain;
 
 

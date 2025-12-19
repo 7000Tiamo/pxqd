@@ -39,7 +39,6 @@
               生成签退二维码
             </el-button>
             <el-button @click="editTraining">编辑培训</el-button>
-            <el-button @click="publishNotice">发布公告</el-button>
           </div>
         </el-card>
         
@@ -362,10 +361,6 @@ const generateCheckoutQRCode = () => {
 
 const editTraining = () => {
   router.push(`/trainings/${route.params.id}/edit`)
-}
-
-const publishNotice = () => {
-  ElMessage.info('公告发布功能开发中')
 }
 
 const handleQrClose = () => {

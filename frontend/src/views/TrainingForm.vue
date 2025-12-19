@@ -75,9 +75,13 @@
           </el-col>
         </el-row>
 
-        <el-form-item label="早退阈值(分钟)">
+        <el-row :gutter="20">
+          <el-col :span="12">
+             <el-form-item label="早退阈值(分钟)">
           <el-input-number v-model="form.earlyLeaveMinutes" :min="0" style="width: 100%" />
-        </el-form-item>
+              </el-form-item>
+            </el-col>
+        </el-row>
 
         <el-form-item>
           <el-button @click="$router.back()">取消</el-button>
