@@ -73,7 +73,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getTongji, getStatsByTraining, getStatsByDepartment, getStatsByEmployee } from '@/api/stats'
+import {
+  getTongji,
+  getStatsByTraining,
+  getStatsByDepartment,
+  getStatsByEmployee,
+  exportStatsByTraining,
+  exportStatsByDepartment,
+  exportStatsByEmployee
+} from '@/api/stats'
 import { ElMessage } from 'element-plus'
 
 
@@ -158,7 +166,45 @@ const loadStatsData = async () => {
 }
 
 const handleExport = () => {
-  ElMessage.info('导出功能开发中')
+  const pad2 = (n) => String(n).padStart(2, '0')
+  const d = new Date()
+  const ts = `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`
+
+  const downloadBlob = (blob, filename) => {
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  }
+
+  const run = async () => {
+    try {
+      let blob
+      let filename = `统计导出_${ts}.xlsx`
+
+      if (statsType.value === 'training') {
+        blob = await exportStatsByTraining()
+        filename = `按培训项目统计_${ts}.xlsx`
+      } else if (statsType.value === 'department') {
+        blob = await exportStatsByDepartment()
+        filename = `按部门统计_${ts}.xlsx`
+      } else if (statsType.value === 'employee') {
+        blob = await exportStatsByEmployee()
+        filename = `按员工统计_${ts}.xlsx`
+      }
+
+      downloadBlob(blob, filename)
+      ElMessage.success('导出成功')
+    } catch (error) {
+      ElMessage.error(error?.message || '导出失败')
+    }
+  }
+
+  run()
 }
 
 onMounted(() => {

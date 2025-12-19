@@ -36,4 +36,31 @@ export const getStatsByEmployee = () => {
   })
 }
 
+// 导出：按培训项目统计（Excel）
+export const exportStatsByTraining = () => {
+  return request({
+    url: '/stats/by-training/export',
+    method: 'get',
+    responseType: 'blob'
+  })
+}
+
+// 导出：按部门统计（Excel）
+export const exportStatsByDepartment = () => {
+  return request({
+    url: '/stats/by-department/export',
+    method: 'get',
+    responseType: 'blob'
+  })
+}
+
+// 导出：按员工统计（Excel）
+export const exportStatsByEmployee = () => {
+  return request({
+    url: '/stats/by-employee/export',
+    method: 'get',
+    responseType: 'blob'
+  })
+}
+
 
