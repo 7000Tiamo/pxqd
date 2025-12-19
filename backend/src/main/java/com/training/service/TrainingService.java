@@ -11,6 +11,7 @@ import com.training.entity.Training;
 import com.training.mapper.CheckinMapper;
 import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
+import com.training.util.DateTimeUtil;
 import com.training.vo.TrainingDetailVO;
 import com.training.vo.TrainingListVO;
 import lombok.RequiredArgsConstructor;
@@ -56,8 +57,8 @@ public class TrainingService {
         training.setLateMinutes(dto.getLateMinutes() != null ? dto.getLateMinutes() : 15);
         training.setEarlyLeaveMinutes(dto.getEarlyLeaveMinutes() != null ? dto.getEarlyLeaveMinutes() : 15);
         training.setMaxParticipants(dto.getMaxParticipants());
-        training.setCreatedAt(LocalDateTime.now());
-        training.setUpdatedAt(LocalDateTime.now());
+        training.setCreatedAt(DateTimeUtil.now());
+        training.setUpdatedAt(DateTimeUtil.now());
 
         trainingMapper.insert(training);
         return training;
@@ -109,7 +110,7 @@ public class TrainingService {
             }
         }
 
-        training.setUpdatedAt(LocalDateTime.now());
+        training.setUpdatedAt(DateTimeUtil.now());
         return trainingMapper.updateById(training) > 0;
     }
 
@@ -133,7 +134,7 @@ public class TrainingService {
         }
 
         training.setStatus("open");
-        training.setUpdatedAt(LocalDateTime.now());
+        training.setUpdatedAt(DateTimeUtil.now());
         return trainingMapper.updateById(training) > 0;
     }
 
@@ -249,7 +250,7 @@ public class TrainingService {
      */
     @Transactional
     public void updateTrainingStatus() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = DateTimeUtil.now();
         // 只查询已发布（报名中）和进行中的培训
         List<Training> trainings = trainingMapper.selectByStatus("open");
         trainings.addAll(trainingMapper.selectByStatus("ongoing"));

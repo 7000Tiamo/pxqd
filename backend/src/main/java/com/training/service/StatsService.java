@@ -9,6 +9,7 @@ import com.training.mapper.CheckinMapper;
 import com.training.mapper.EnrollmentMapper;
 import com.training.mapper.TrainingMapper;
 import com.training.mapper.UserMapper;
+import com.training.util.DateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class StatsService {
          * 获取首页统计数据
          */
         public Map<String, Object> getOverviewStats() {
-                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime now = DateTimeUtil.now();
                 LocalDateTime monthStart = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
 
                 List<Training> allTrainings = trainingMapper.selectAll();
