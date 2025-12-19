@@ -79,11 +79,10 @@ public class ExcelExportUtil {
             }
 
             // 自动调整列宽（限制最大宽度防止异常）
+            // 替换原来的 autoSizeColumn 部分
+            int fixedWidth = 15 * 256; // Excel 列宽单位：1 字符 ≈ 256（实际是 1/256 字符宽度）
             for (int i = 0; i < columns.size(); i++) {
-                sheet.autoSizeColumn(i);
-                if (sheet.getColumnWidth(i) > 255 * 256) { // Excel 最大列宽约 255 字符
-                    sheet.setColumnWidth(i, 255 * 256);
-                }
+                sheet.setColumnWidth(i, fixedWidth);
             }
 
             workbook.write(out);
