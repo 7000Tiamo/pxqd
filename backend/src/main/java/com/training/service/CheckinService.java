@@ -17,6 +17,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.training.util.DateTimeUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public class CheckinService {
             }
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = DateTimeUtil.now();
         boolean isLate = false;
         if (training.getStartTime() != null && training.getLateMinutes() != null) {
             LocalDateTime lateThreshold = training.getStartTime().plusMinutes(training.getLateMinutes());
@@ -123,7 +124,7 @@ public class CheckinService {
             throw new BizException(ErrorCode.BUSINESS_CONFLICT, ErrorMessages.TRAINING_NEED_CHECKIN_FIRST);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = DateTimeUtil.now();
         boolean isEarlyLeave = false;
         if (training.getEndTime() != null && training.getEarlyLeaveMinutes() != null) {
             LocalDateTime earlyThreshold = training.getEndTime().minusMinutes(training.getEarlyLeaveMinutes());

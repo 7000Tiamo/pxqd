@@ -41,7 +41,7 @@ file:
 # 前端域名配置（用于生成二维码链接）
 app:
   frontend:
-    domain: http://172.23.26.209:3000
+    domain: http://172.23.26.209:80
 
 appconfigServerUrl: http://tap-dev.thunisoft.com/appconfig
 corp: 2400

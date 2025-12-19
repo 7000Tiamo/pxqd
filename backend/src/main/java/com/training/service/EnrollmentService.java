@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.training.util.DateTimeUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,8 +68,8 @@ public class EnrollmentService {
         enrollment.setTrainingId(trainingId);
         enrollment.setUserId(userId);
         enrollment.setStatus("enrolled");
-        enrollment.setEnrolledAt(LocalDateTime.now());
-        enrollment.setCreatedAt(LocalDateTime.now());
+        enrollment.setEnrolledAt(DateTimeUtil.now());
+        enrollment.setCreatedAt(DateTimeUtil.now());
 
         return enrollmentMapper.insert(enrollment) > 0;
     }
@@ -96,8 +97,8 @@ public class EnrollmentService {
         }
 
         enrollment.setStatus("cancelled");
-        enrollment.setCancelledAt(LocalDateTime.now());
-        enrollment.setUpdatedAt(LocalDateTime.now());
+        enrollment.setCancelledAt(DateTimeUtil.now());
+        enrollment.setUpdatedAt(DateTimeUtil.now());
         return enrollmentMapper.updateById(enrollment) > 0;
     }
 
